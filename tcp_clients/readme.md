@@ -3,7 +3,7 @@
 ```
   ** 语法：**
   tcp_client.exe <ip> <port> [data]
-  __ip ip地址__
+  ip ip地址__
   port 端口
   data 传数的数据
 ```
