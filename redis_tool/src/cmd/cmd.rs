@@ -1,7 +1,6 @@
 #[derive(Debug)]
 pub struct StringCMD {
-    cmd: String,
-    options: vec::new(),
+    
 }
 
 pub mod cmd {

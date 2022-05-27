@@ -1,9 +1,17 @@
-#[macro_use] extern crate prettytable;
-use std::io::{self, Write};
+mod constrs;
+mod cvt;
 
-use prettytable::{Table, Cell, Row, row};
+#[macro_use]
+extern crate prettytable;
+use std::{
+    clone,
+    io::{self, stdin, Write},
+};
+
+// use prettytable::{row, Cell, Row, Table};
 // use simple_redis::{client, RedisError};
 extern crate simple_redis;
+include!("cvt.rs");
 
 fn main() -> io::Result<()> {
     let parmas = RedisParams {
@@ -16,54 +24,36 @@ fn main() -> io::Result<()> {
     let mut clients = parmas.new();
 
     loop {
-        print!("#>");
+        print!("#_>");
+
+        //flush std io
+        //set params from readline
+        //read line from keyborad
         io::stdout().flush()?;
         let mut command = String::new();
-        let b1 = std::io::stdin().read_line(&mut command).unwrap();
-        let cmd = String::from(command.trim());
-        match &cmd as &str {
-            "quit" => {
-                println!("quit redis tools");
-                break;
-            },
-            _ => (),
-        }
-        let str_val = clients.get::<String>(&cmd);
-        match str_val {
-            Ok(mut strs) => {
-               // 创建表格
-               let mut table = Table::new();
 
-               table.add_row(row!["ABC", "DEFG", "HIJKLMN"]);
-               table.add_row(row!["foobar", "bar", "foo"]);
-               table.add_row(Row::new(vec![
-               Cell::new("foobar2"),
-               Cell::new("bar2"),
-               Cell::new("foo2"),
-               ]));
-
-             // 打印表格到标准输出
-            table.printstd();
-                println!("val=>{}",&strs);
-            },
-            Err(error) =>{
-                println!("get error: {}",error);
-            } ,
+        match stdin().read_line(&mut command) {
+            Ok(_) => {
+                let cmd = String::from(command.trim());
+                //match
+                match &cmd as &str {
+                    "quit" => {
+                        println!("quit redis tools");
+                        break;
+                    }
+                    _ => {
+                        let mut clients11 = clients;
+                        Cvt { cmd: cmd }.convert(clients11);
+                    }
+                }
+            }
+            Err(error) => {
+                print!("read cmd line is error,err {}", error)
+            }
         }
-        // println!("val=>{}", &str_val);
     }
 
     Ok(())
-    // let str_val = clients.get::<String>("test").unwrap();
-    // println!("v=>{}",str_val);
-    // match &str_val {
-    //     Ok(mut str) => {
-    //         println!("value=>{}", str)
-    //     }
-    //     Err(error) => {
-    //         println!("Get Key {} Error：{}", "Affa_Sub_32896668190032845", error)
-    //     }
-    // }
 }
 
 #[derive(Debug)]
@@ -73,7 +63,6 @@ struct RedisParams {
     db: u16,
     auth: String,
 }
-
 
 impl RedisParams {
     //connect redis server
