@@ -1,0 +1,10 @@
+[package]
+name = "redis_tool"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+simple_redis = "0.3.44"
+prettytable-rs = "^0.8"
