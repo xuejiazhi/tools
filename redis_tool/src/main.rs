@@ -1,15 +1,11 @@
+mod cmd;
 mod constrs;
 mod cvt;
 
-#[macro_use]
-extern crate prettytable;
 use std::{
-    clone,
     io::{self, stdin, Write},
 };
 
-// use prettytable::{row, Cell, Row, Table};
-// use simple_redis::{client, RedisError};
 extern crate simple_redis;
 include!("cvt.rs");
 
@@ -24,7 +20,7 @@ fn main() -> io::Result<()> {
     let mut clients = parmas.new();
 
     loop {
-        print!("#_>");
+        print!("#_> ");
 
         //flush std io
         //set params from readline
@@ -42,8 +38,8 @@ fn main() -> io::Result<()> {
                         break;
                     }
                     _ => {
-                        let mut clients11 = clients;
-                        Cvt { cmd: cmd }.convert(clients11);
+                        let clients11 = &mut clients;
+                        Cvt { cmd: cmd,clients:clients11}.convert();
                     }
                 }
             }

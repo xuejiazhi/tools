@@ -1,20 +1,22 @@
-use std::process::exit;
+use crate::cmd as cvt_cmd;
+extern crate prettytable;
 
-use prettytable::{Table, Row, Cell};
+#[macro_use]
+use prettytable::{Table, row, Row, Cell, cell};
 
 /**
  * @explain order
  */
-
-#[derive(Debug)]
 pub struct Cvt {
     cmd: String,
+    clients: *mut simple_redis::client::Client,
 }
 
 impl Cvt {
-    pub fn convert(&self, clients: simple_redis::client::Client) {
+    pub fn convert(&self) {
+        // pub fn convert(&self) {
         let items: Vec<&str> = self.cmd.split(" ").collect();
-        let usecmds = self::Cvt::delnull(items);
+        let usecmds = self::Cvt::del_null(items);
 
         let cmd_length = usecmds.len();
 
@@ -27,39 +29,103 @@ impl Cvt {
             //get key
             "get" => {
                 if cmd_length != 2 {
-                    println!("{}", crate::constrs::Constrs::STRING_LENGTH_IS_FAIL);
+                    println!("GET {} 2", crate::constrs::Constrs::STRING_LENGTH_IS_FAIL);
                     return;
                 }
-                let str_val = clients.get::<String>(&usecmds[1]);
-                match str_val {
-                    Ok(strs) => {
-                        // 创建表格
-                        let mut table = Table::new();
 
-                        table.add_row(row!["key", "val", "ttl"]);
-                        table.add_row(Row::new(vec![
-                            Cell::new("key"),
-                            Cell::new("val"),
-                            Cell::new("-1"),
-                        ]));
-
-                        // 打印表格到标准输出
-                        table.printstd();
-                    }
-                    Err(error) => {
-                        println!("get error: {}", error);
-                    }
+                unsafe {
+                    self::Cvt::get(&self, usecmds[1].to_string());
                 }
-                // clients.get(&usecmds[1])
             }
-            "set" => {}
+            //set key
+            "set" => {
+                if cmd_length != 3 {
+                    println!("SET {} 3", crate::constrs::Constrs::STRING_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe { self::Cvt::set(&self, usecmds[1].to_string(), usecmds[2].to_string()) }
+            }
+            //del key
+            "del" => {
+                if cmd_length != 2 {
+                    println!("DEL {} 2", crate::constrs::Constrs::STRING_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe { self::Cvt::del(&self, usecmds[1].to_string()) }
+            }
+
             _ => {
                 println!("{}", crate::constrs::Constrs::CMD_IS_FAIL);
             }
         }
     }
 
-    fn delnull(cmdlist: Vec<&str>) -> Vec<String> {
+    unsafe fn get(&self, key: String) {
+        let (ttl, err) = self::Cvt::get_ttl(&self, key.to_string());
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // first layer
+        let str_val = c.get::<String>(&key);
+        match str_val {
+            Ok(strs) => {
+                cvt_cmd::string::StringCMD {
+                    key: key.to_string(),
+                    val: strs.to_string(),
+                    ttl: ttl,
+                    err: err,
+                }
+                .get();
+            }
+            Err(error) => {
+                println!("get error: {}", error);
+            }
+        }
+    }
+
+    unsafe fn set(&self, key: String, value: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // first layer
+        match c.set(key.as_str(), value.as_str()) {
+            Ok(_) => {
+                println!(
+                    "{} Key =>{},Val=>{}",
+                    crate::constrs::Constrs::STRING_SET_REDIS_SUCCESS,
+                    key,
+                    value
+                );
+            }
+            Err(error) => {
+                println!(
+                    "{} Key =>{},Val=>{}",
+                    crate::constrs::Constrs::STRING_SET_REDIS_FAIL,
+                    key,
+                    value
+                );
+            }
+        }
+    }
+
+    unsafe fn del(&self, key: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // first layer
+        match c.del(key.as_str()) {
+            Ok(_) => {
+                println!(
+                    "Key =>{},{} {}",
+                    key,
+                    crate::constrs::Constrs::DEL_REDIS_KEY,
+                    " Success!"
+                );
+            }
+            Err(error) => {
+                println!(
+                    "Key =>{},{} {},{}",
+                    key,
+                    crate::constrs::Constrs::DEL_REDIS_KEY,
+                    " Fail!",
+                    error.to_string(),
+                );
+            }
+        }
+    }
+
+    fn del_null(cmdlist: Vec<&str>) -> Vec<String> {
         let mut ret = Vec::new();
         if cmdlist.len() > 0 {
             for (_, item) in cmdlist.iter().enumerate() {
@@ -70,34 +136,20 @@ impl Cvt {
         }
         ret
     }
+
+    unsafe fn get_ttl(&self, key: String) -> (String, String) {
+        //set ttl error
+        let mut ttl_val: String = "nil".to_string();
+        let mut err_val: String = "nil".to_string();
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // first layer
+        match c.run_command::<i32>("TTL", vec![&key]) {
+            Ok(val) => {
+                ttl_val = val.to_string();
+            }
+            Err(err) => {
+                err_val = err.to_string();
+            }
+        };
+        (ttl_val, err_val)
+    }
 }
-
-// let cmd = String::from(command.trim());
-// //match
-// match &cmd as &str {
-//     "quit" => {
-//         println!("quit redis tools");
-//         break;
-//     }
-//     _ => (),
-// }
-// let str_val = clients.get::<String>(&cmd);
-// match str_val {
-//     Ok(strs) => {
-//         // 创建表格
-//         let mut table = Table::new();
-
-//         table.add_row(row!["key", "val", "ttl"]);
-//         table.add_row(Row::new(vec![
-//             Cell::new(&cmd),
-//             Cell::new(&strs),
-//             Cell::new("-1"),
-//         ]));
-
-//         // 打印表格到标准输出
-//         table.printstd();
-//     }
-//     Err(error) => {
-//         println!("get error: {}", error);
-//     }
-// }
