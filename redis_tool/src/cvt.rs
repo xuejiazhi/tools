@@ -21,7 +21,7 @@ impl Cvt {
         let cmd_length = usecmds.len();
 
         if cmd_length == 0 {
-            println!("{}", crate::constrs::Constrs::CMD_IS_NIL);
+            println!("{}", crate::constrs::constrs::CMD_IS_NIL);
             return;
         }
         let cmdlist = String::from(&usecmds[0]).to_lowercase();
@@ -29,7 +29,7 @@ impl Cvt {
             //get key
             "get" => {
                 if cmd_length != 2 {
-                    println!("GET {} 2", crate::constrs::Constrs::STRING_LENGTH_IS_FAIL);
+                    println!("GET {} 2", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
                     return;
                 }
 
@@ -37,25 +37,40 @@ impl Cvt {
                     self::Cvt::get(&self, usecmds[1].to_string());
                 }
             }
+            
             //set key
             "set" => {
                 if cmd_length != 3 {
-                    println!("SET {} 3", crate::constrs::Constrs::STRING_LENGTH_IS_FAIL);
+                    println!("SET {} 3", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe { self::Cvt::set(&self, usecmds[1].to_string(), usecmds[2].to_string()) }
             }
+
             //del key
             "del" => {
                 if cmd_length != 2 {
-                    println!("DEL {} 2", crate::constrs::Constrs::STRING_LENGTH_IS_FAIL);
+                    println!("DEL {} 2", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe { self::Cvt::del(&self, usecmds[1].to_string()) }
             }
 
+            //getset
+            "getset"=>{
+                if cmd_length != 3 {
+                    println!("GETSET {} 3", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                unsafe {
+                    self::Cvt::get(&self, usecmds[1].to_string());
+                    self::Cvt::set(&self, usecmds[1].to_string(), usecmds[2].to_string())
+                }
+            }
+
             _ => {
-                println!("{}", crate::constrs::Constrs::CMD_IS_FAIL);
+                println!("{}", crate::constrs::constrs::CMD_IS_FAIL);
             }
         }
     }
@@ -86,7 +101,7 @@ impl Cvt {
             Ok(_) => {
                 println!(
                     "{} Key =>{},Val=>{}",
-                    crate::constrs::Constrs::STRING_SET_REDIS_SUCCESS,
+                    crate::constrs::constrs::STRING_SET_REDIS_SUCCESS,
                     key,
                     value
                 );
@@ -94,7 +109,7 @@ impl Cvt {
             Err(error) => {
                 println!(
                     "{} Key =>{},Val=>{}",
-                    crate::constrs::Constrs::STRING_SET_REDIS_FAIL,
+                    crate::constrs::constrs::STRING_SET_REDIS_FAIL,
                     key,
                     value
                 );
@@ -109,7 +124,7 @@ impl Cvt {
                 println!(
                     "Key =>{},{} {}",
                     key,
-                    crate::constrs::Constrs::DEL_REDIS_KEY,
+                    crate::constrs::constrs::DEL_REDIS_KEY,
                     " Success!"
                 );
             }
@@ -117,7 +132,7 @@ impl Cvt {
                 println!(
                     "Key =>{},{} {},{}",
                     key,
-                    crate::constrs::Constrs::DEL_REDIS_KEY,
+                    crate::constrs::constrs::DEL_REDIS_KEY,
                     " Fail!",
                     error.to_string(),
                 );
@@ -125,6 +140,11 @@ impl Cvt {
         }
     }
 
+    unsafe fn getset(&self,key: String, value: String){
+
+    }
+
+    //local function 
     fn del_null(cmdlist: Vec<&str>) -> Vec<String> {
         let mut ret = Vec::new();
         if cmdlist.len() > 0 {

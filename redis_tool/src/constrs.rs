@@ -1,4 +1,4 @@
-pub mod Constrs {
+pub mod constrs {
     pub const CMD_IS_FAIL: &str = "cmd is fail!";
     pub const CMD_IS_NIL: &str = "cmd line is empty!";
     //string message

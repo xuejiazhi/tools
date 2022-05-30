@@ -2,9 +2,9 @@ mod cmd;
 mod constrs;
 mod cvt;
 
-use std::{
-    io::{self, stdin, Write},
-};
+use std::io::{self, stdin, Write};
+
+use regex::Regex;
 
 extern crate simple_redis;
 include!("cvt.rs");
@@ -38,8 +38,17 @@ fn main() -> io::Result<()> {
                         break;
                     }
                     _ => {
+                        let r = Regex::new(r"db([0-9]\b|1[0-5]\b)").unwrap();
+                        if r.is_match(cmd.as_str()) {
+                            println!("switch {} db", cmd);
+                            continue;
+                        }
                         let clients11 = &mut clients;
-                        Cvt { cmd: cmd,clients:clients11}.convert();
+                        Cvt {
+                            cmd: cmd,
+                            clients: clients11,
+                        }
+                        .convert();
                     }
                 }
             }
