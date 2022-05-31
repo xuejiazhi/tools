@@ -1,23 +1,26 @@
 mod cmd;
 mod constrs;
 mod cvt;
+mod util;
 
 use std::io::{self, stdin, Write};
 
 use regex::Regex;
 
+use crate::util::strexpres::{Express, StrExpress};
+
 extern crate simple_redis;
 include!("cvt.rs");
 
 fn main() -> io::Result<()> {
-    let parmas = RedisParams {
+    let mut parmas = &mut RedisParams {
         host: String::from("127.0.0.1"),
         port: String::from("6379"),
-        db: 0,
+        db: String::from("0"),
         auth: String::from(""),
     };
 
-    let mut clients = parmas.new();
+    let mut clients = &mut parmas.new();
 
     loop {
         print!("#_> ");
@@ -40,13 +43,19 @@ fn main() -> io::Result<()> {
                     _ => {
                         let r = Regex::new(r"db([0-9]\b|1[0-5]\b)").unwrap();
                         if r.is_match(cmd.as_str()) {
-                            println!("switch {} db", cmd);
+                            //switch redis db
+                            //use db{0-15}
+                            //like [ # > db1 | # > db2 .......# > db15]
+                            parmas.db =
+                                StrExpress {}.replace(&cmd, "db".to_string(), "".to_string());
+                            println!("switch {:?} db", &parmas);
+                            *clients = parmas.new();
                             continue;
                         }
-                        let clients11 = &mut clients;
+                        // let clients11 = &mut clients;
                         Cvt {
                             cmd: cmd,
-                            clients: clients11,
+                            clients: clients,
                         }
                         .convert();
                     }
@@ -65,7 +74,7 @@ fn main() -> io::Result<()> {
 struct RedisParams {
     host: String,
     port: String,
-    db: u16,
+    db: String,
     auth: String,
 }
 
