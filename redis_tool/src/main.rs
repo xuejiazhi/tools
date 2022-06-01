@@ -20,10 +20,10 @@ fn main() -> io::Result<()> {
         auth: String::from(""),
     };
 
-    let mut clients = &mut parmas.new();
+    let  clients = &mut parmas.new();
 
     loop {
-        print!("#_> ");
+        print!("{}:{}~[db{}]#> ",&parmas.host,&parmas.port,&parmas.db);
 
         //flush std io
         //set params from readline
@@ -40,6 +40,12 @@ fn main() -> io::Result<()> {
                         println!("quit redis tools");
                         break;
                     }
+                    "clear" =>{
+                        cmd::string::StringCMD{}.clear();
+                        print!("\x1b[2J");
+                        print!("\x1b[H");
+                        continue;
+                    }
                     _ => {
                         let r = Regex::new(r"db([0-9]\b|1[0-5]\b)").unwrap();
                         if r.is_match(cmd.as_str()) {
@@ -48,7 +54,7 @@ fn main() -> io::Result<()> {
                             //like [ # > db1 | # > db2 .......# > db15]
                             parmas.db =
                                 StrExpress {}.replace(&cmd, "db".to_string(), "".to_string());
-                            println!("switch {:?} db", &parmas);
+                            println!("switch db {} Success!", &parmas.db);
                             *clients = parmas.new();
                             continue;
                         }
