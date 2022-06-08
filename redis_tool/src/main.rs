@@ -1,30 +1,29 @@
+mod cmd;
 mod constrs;
 mod cvt;
+mod util;
 
-#[macro_use]
-extern crate prettytable;
-use std::{
-    clone,
-    io::{self, stdin, Write},
-};
+use std::io::{self, stdin, Write};
 
-// use prettytable::{row, Cell, Row, Table};
-// use simple_redis::{client, RedisError};
+use regex::Regex;
+
+use crate::util::strexpres::{Express, StrExpress};
+
 extern crate simple_redis;
 include!("cvt.rs");
 
 fn main() -> io::Result<()> {
-    let parmas = RedisParams {
+    let mut parmas = &mut RedisParams {
         host: String::from("127.0.0.1"),
         port: String::from("6379"),
-        db: 0,
+        db: String::from("0"),
         auth: String::from(""),
     };
 
-    let mut clients = parmas.new();
+    let  clients = &mut parmas.new();
 
     loop {
-        print!("#_>");
+        print!("{}:{}~[db{}]#> ",&parmas.host,&parmas.port,&parmas.db);
 
         //flush std io
         //set params from readline
@@ -41,9 +40,30 @@ fn main() -> io::Result<()> {
                         println!("quit redis tools");
                         break;
                     }
+                    "clear" =>{
+                        cmd::string::StringCMD{}.clear();
+                        print!("\x1b[2J");
+                        print!("\x1b[H");
+                        continue;
+                    }
                     _ => {
-                        let mut clients11 = clients;
-                        Cvt { cmd: cmd }.convert(clients11);
+                        let r = Regex::new(r"db([0-9]\b|1[0-5]\b)").unwrap();
+                        if r.is_match(cmd.as_str()) {
+                            //switch redis db
+                            //use db{0-15}
+                            //like [ # > db1 | # > db2 .......# > db15]
+                            parmas.db =
+                                StrExpress {}.replace(&cmd, "db".to_string(), "".to_string());
+                            println!("switch db {} Success!", &parmas.db);
+                            *clients = parmas.new();
+                            continue;
+                        }
+                        // let clients11 = &mut clients;
+                        Cvt {
+                            cmd: cmd,
+                            clients: clients,
+                        }
+                        .convert();
                     }
                 }
             }
@@ -60,7 +80,7 @@ fn main() -> io::Result<()> {
 struct RedisParams {
     host: String,
     port: String,
-    db: u16,
+    db: String,
     auth: String,
 }
 
