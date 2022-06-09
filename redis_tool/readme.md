@@ -10,10 +10,11 @@ redis_tool 是一个模拟redis-cli的工具,对redis查询出来的结果进行
 
 
 ### 登录
-```bash
-  ** cmd: 
+**cmd**: 
     redis_tool <host> <port> [password]
-  ** case:
+ 
+**Case**:
+ ```bash
   root~# redis_tool.exe 127.0.0.1 6379 "password"
     .-"""-.
     / .===. \
