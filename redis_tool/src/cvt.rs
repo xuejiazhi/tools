@@ -1,11 +1,15 @@
-use crate::{cmd as cvt_cmd, cvt_cmd::string::Cmd, util::strexpres::*};
+use crate::{
+    cmd as cvt_cmd,
+    cmd::string::Cmd,
+    util::strexpres::{Express, StrExpress},
+};
 
 /**
  * @explain order
  */
 pub struct Cvt {
-    cmd: String,
-    clients: *mut simple_redis::client::Client,
+    pub(crate) cmd: String,
+    pub(crate) clients: *mut simple_redis::client::Client,
 }
 
 impl Cvt {
@@ -87,6 +91,23 @@ impl Cvt {
                     println!("TYPE {} 2", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
                     return;
                 }
+                unsafe {
+                    let param_type = self.get_type(usecmds[1].to_string());
+                    cvt_cmd::string::StringCMD {}.typec(usecmds[1].to_string(), param_type)
+                }
+            }
+
+            //
+            "exists" => {
+                if cmd_length != 2 {
+                    println!(
+                        "EXISTS {} 2",
+                        crate::constrs::constrs::STRING_LENGTH_IS_FAIL
+                    );
+                    return;
+                }
+
+                unsafe { println!("{}", self.key_is_exists(usecmds[1].to_string())) }
             }
 
             _ => {
@@ -100,8 +121,8 @@ impl Cvt {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
         match c.keys(&key) {
             Ok(strs) => {
-                println!("datalist==>{:?}", strs);
-                let mut _data_list:Vec<Vec<String>> = vec![];
+                cvt_cmd::string::StringCMD {}.keys(strs);
+                // println!("datalist==>{:?}", strs);
             }
             Err(error) => {
                 println!("get error: {}", error);
@@ -188,13 +209,21 @@ impl Cvt {
         //set ttl error
         let mut type_val: String = "none".to_string();
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
-        match c.run_command::<String>("TYPE", vec![&key]) { 
+        match c.run_command::<String>("TYPE", vec![&key]) {
             Ok(val) => {
                 type_val = val.to_string();
             }
-            Err(_error) => {
-            }
+            Err(_error) => {}
         }
         type_val
+    }
+
+    #[allow(dead_code)]
+    unsafe fn key_is_exists(&self, key: String) -> bool {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.exists(&key) {
+            Ok(result) => result,
+            Err(_) => false,
+        }
     }
 }

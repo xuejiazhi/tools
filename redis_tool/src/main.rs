@@ -2,15 +2,20 @@ mod cmd;
 mod constrs;
 mod cvt;
 mod util;
+mod convert_test;
 
 use std::io::{self, stdin, Write};
 
 use regex::Regex;
 
-use crate::util::strexpres::{Express, StrExpress};
+use crate::{
+    cmd::string::Cmd,
+    cvt::Cvt,
+    util::strexpres::{Express, StrExpress},
+};
 
 extern crate simple_redis;
-include!("cvt.rs");
+// include!("cvt.rs");
 
 fn main() -> io::Result<()> {
     let mut parmas = &mut RedisParams {
@@ -20,10 +25,33 @@ fn main() -> io::Result<()> {
         auth: String::from(""),
     };
 
-    let  clients = &mut parmas.new();
+    let clients = &mut parmas.new();
+    match clients.echo("Ping") {
+        Ok(_) => {
+            println!("  
+    .-\"\"\"-.
+    / .===. \\
+    \\/ 6 6 \\/
+    ( \\___/ )
+ _________ooo__\\_____/_____________
+/                                  \\
+|    Connect Redis Success!         |
+\\_______________________ooo________/ 
+     |  |  |
+     |_ | _|
+     |  |  |
+     |__|__|
+     /-'Y'-\\
+    (__/ \\__)");
+        }
+        Err(_) => {
+            println!("Connect Refused,Please Check the NetWork ");
+            return Ok(());
+        }
+    }
 
     loop {
-        print!("{}:{}~[db{}]#> ",&parmas.host,&parmas.port,&parmas.db);
+        print!("{}:{}~[db{}]#> ", &parmas.host, &parmas.port, &parmas.db);
 
         //flush std io
         //set params from readline
@@ -37,11 +65,11 @@ fn main() -> io::Result<()> {
                 //match
                 match &cmd as &str {
                     "quit" => {
-                        println!("quit redis tools");
+                        println!("Bye! quit redis tools");
                         break;
                     }
-                    "clear" =>{
-                        cmd::string::StringCMD{}.clear();
+                    "clear" => {
+                        cmd::string::StringCMD {}.clear();
                         print!("\x1b[2J");
                         print!("\x1b[H");
                         continue;
@@ -60,7 +88,7 @@ fn main() -> io::Result<()> {
                         }
                         // let clients11 = &mut clients;
                         Cvt {
-                            cmd: cmd,
+                            cmd,
                             clients: clients,
                         }
                         .convert();
