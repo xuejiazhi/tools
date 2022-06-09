@@ -36,11 +36,11 @@ redis_tool 是一个模拟redis-cli的工具,对redis查询出来的结果进行
 ```
 **Keys**
 ```bash
->> exists 命令:判断Key是否存在
+### exists 命令:判断Key是否存在
 127.0.0.1:6379~[db0]#> exists cache_key
 true
 
->> type 命令：获取key类型
+### type 命令：获取key类型
 127.0.0.1:6379~[db0]#> type cache_key
 +-----------+--------+
 | key       | type   |
