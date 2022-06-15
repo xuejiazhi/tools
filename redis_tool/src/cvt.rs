@@ -1,6 +1,8 @@
+use simple_redis::types::RedisError;
+
 use crate::{
     cmd as cvt_cmd,
-    cmd::string::Cmd,
+    cmd::string::{self, Cmd},
     util::strexpres::{Express, StrExpress},
 };
 
@@ -97,7 +99,7 @@ impl Cvt {
                 }
             }
 
-            //
+            //exists key
             "exists" => {
                 if cmd_length != 2 {
                     println!(
@@ -106,13 +108,60 @@ impl Cvt {
                     );
                     return;
                 }
-
                 unsafe { println!("{}", self.key_is_exists(usecmds[1].to_string())) }
+            }
+
+            //pttl
+            "pttl" => {
+                if cmd_length != 2 {
+                    println!("PTTL {} 2", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    self.pttl_key(usecmds[1].to_string());
+                }
+            }
+
+            //dump
+            "dump" => {
+                if cmd_length != 2 {
+                    println!("DUMP {} 2", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    self.dump(usecmds[1].to_string());
+                }
             }
 
             _ => {
                 println!("{}", crate::constrs::constrs::CMD_IS_FAIL);
             }
+        }
+    }
+}
+
+pub trait RunUnsafe {
+    unsafe fn dump(&self, key: String);
+    unsafe fn keys(&self, key: String);
+    unsafe fn get(&self, key: String);
+    unsafe fn set(&self, key: String, value: String);
+    unsafe fn del(&self, key: String);
+    unsafe fn get_type(&self, key: String) -> String;
+    unsafe fn pttl_key(&self, key: String);
+    unsafe fn key_is_exists(&self, key: String) -> bool;
+    unsafe fn get_ttl(&self, key: String) -> (String, String);
+}
+
+impl RunUnsafe for Cvt {
+    #[allow(dead_code)]
+    unsafe fn dump(&self, key: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<Vec<u8>>("DUMP", vec![&key]) {
+            Ok(val) => {
+                let str = String::from_utf8_lossy(&val);
+                println!("{}",str)
+            }
+            Err(_error) => {}
         }
     }
 
@@ -122,22 +171,6 @@ impl Cvt {
         match c.keys(&key) {
             Ok(strs) => {
                 cvt_cmd::string::StringCMD {}.keys(strs);
-                // println!("datalist==>{:?}", strs);
-            }
-            Err(error) => {
-                println!("get error: {}", error);
-            }
-        }
-    }
-
-    #[allow(dead_code)]
-    unsafe fn get(&self, key: String) {
-        let (ttl, err) = self.get_ttl(key.to_string());
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
-        let str_val = c.get::<String>(&key);
-        match str_val {
-            Ok(strs) => {
-                cvt_cmd::string::StringCMD {}.get(key.to_string(), strs.to_string(), ttl, err);
             }
             Err(error) => {
                 println!("get error: {}", error);
@@ -188,23 +221,6 @@ impl Cvt {
     }
 
     #[allow(dead_code)]
-    unsafe fn get_ttl(&self, key: String) -> (String, String) {
-        //set ttl error
-        let mut ttl_val: String = "nil".to_string();
-        let mut err_val: String = "nil".to_string();
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
-        match c.run_command::<i32>("TTL", vec![&key]) {
-            Ok(val) => {
-                ttl_val = val.to_string();
-            }
-            Err(err) => {
-                err_val = err.to_string();
-            }
-        };
-        (ttl_val, err_val)
-    }
-
-    #[allow(dead_code)]
     unsafe fn get_type(&self, key: String) -> String {
         //set ttl error
         let mut type_val: String = "none".to_string();
@@ -225,5 +241,50 @@ impl Cvt {
             Ok(result) => result,
             Err(_) => false,
         }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn pttl_key(&self, key: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<i32>("PTTL", vec![&key]) {
+            Ok(val) => {
+                println!("{}", val);
+            }
+            Err(_) => {
+                println!("NIL")
+            }
+        };
+    }
+
+    #[allow(dead_code)]
+    unsafe fn get(&self, key: String) {
+        let (ttl, err) = self.get_ttl(key.to_string());
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let str_val = c.get::<String>(&key);
+        match str_val {
+            Ok(strs) => {
+                cvt_cmd::string::StringCMD {}.get(key.to_string(), strs.to_string(), ttl, err);
+            }
+            Err(error) => {
+                println!("get error: {}", error);
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn get_ttl(&self, key: String) -> (String, String) {
+        //set ttl error
+        let mut ttl_val: String = "nil".to_string();
+        let mut err_val: String = "nil".to_string();
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<i32>("TTL", vec![&key]) {
+            Ok(val) => {
+                ttl_val = val.to_string();
+            }
+            Err(err) => {
+                err_val = err.to_string();
+            }
+        };
+        (ttl_val, err_val)
     }
 }
