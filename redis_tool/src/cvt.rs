@@ -1,8 +1,7 @@
-use simple_redis::types::RedisError;
-
 use crate::{
     cmd as cvt_cmd,
-    cmd::string::{self, Cmd},
+    cmd::string::Cmd,
+    constrs::constrs,
     util::strexpres::{Express, StrExpress},
 };
 
@@ -23,74 +22,49 @@ impl Cvt {
 
         let cmd_length = usecmds.len();
         if cmd_length == 0 {
-            println!("{}", crate::constrs::constrs::CMD_IS_NIL);
+            println!("{}", constrs::CMD_IS_NIL);
             return;
         }
 
         //match cmd to oprate
         let cmdlist = String::from(&usecmds[0]).to_lowercase();
         match &cmdlist as &str {
-            //get key
-            "get" => {
-                if cmd_length != 2 {
-                    println!("GET {} 2", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
-                    return;
-                }
-
-                unsafe {
-                    self.get(usecmds[1].to_string());
-                }
-            }
-
-            //set key
-            "set" => {
-                if cmd_length != 3 {
-                    println!("SET {} 3", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
-                    return;
-                }
-                unsafe {
-                    self.set(usecmds[1].to_string(), usecmds[2].to_string());
-                }
-            }
-
-            //del key
+            // @ Redis Key Operate
+            // like <del,dump,keys,type,exists,pttl,ttl>
+            // Keys used to manage redis
+            // [del]  This command is used to delete a key when it exists.
             "del" => {
                 if cmd_length != 2 {
-                    println!("DEL {} 2", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
+                    println!("DEL {} 2", constrs::STRING_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe { self.del(usecmds[1].to_string()) }
             }
 
-            //getset
-            "getset" => {
-                if cmd_length != 3 {
-                    println!(
-                        "GETSET {} 3",
-                        crate::constrs::constrs::STRING_LENGTH_IS_FAIL
-                    );
+            //[dump] Serialize the given key and return the serialized value.
+            "dump" => {
+                if cmd_length != 2 {
+                    println!("DUMP {} 2", constrs::STRING_LENGTH_IS_FAIL);
                     return;
                 }
-
                 unsafe {
-                    self.get(usecmds[1].to_string());
-                    self.set(usecmds[1].to_string(), usecmds[2].to_string());
+                    self.dump(usecmds[1].to_string());
                 }
             }
 
-            //keys
+            //[keys] Find all keys that match the given pattern.
             "keys" => {
                 if cmd_length != 2 {
-                    println!("KEYS {} 2", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
+                    println!("KEYS {} 2", constrs::STRING_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe { self.keys(usecmds[1].to_string()) }
             }
 
-            //type
+            //[type] Returns the type of the value stored by the key.
             "type" => {
                 if cmd_length != 2 {
-                    println!("TYPE {} 2", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
+                    println!("TYPE {} 2", constrs::STRING_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe {
@@ -99,22 +73,20 @@ impl Cvt {
                 }
             }
 
-            //exists key
+            //[exists] Check whether the given key exists.
             "exists" => {
                 if cmd_length != 2 {
-                    println!(
-                        "EXISTS {} 2",
-                        crate::constrs::constrs::STRING_LENGTH_IS_FAIL
-                    );
+                    println!("EXISTS {} 2", constrs::STRING_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe { println!("{}", self.key_is_exists(usecmds[1].to_string())) }
             }
 
-            //pttl
+            //[pttl]
+            //Returns the remaining expiration time of the key in milliseconds
             "pttl" => {
                 if cmd_length != 2 {
-                    println!("PTTL {} 2", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
+                    println!("PTTL {} 2", constrs::STRING_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe {
@@ -122,25 +94,125 @@ impl Cvt {
                 }
             }
 
-            //dump
-            "dump" => {
+            //[ttl]
+            //Returns the remaining expiration time of the key in seconds
+            "ttl" => {
                 if cmd_length != 2 {
-                    println!("DUMP {} 2", crate::constrs::constrs::STRING_LENGTH_IS_FAIL);
+                    println!("TTL {} 2", constrs::STRING_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe {
-                    self.dump(usecmds[1].to_string());
+                    self.ttl_key(usecmds[1].to_string());
+                }
+            }
+
+            //[expire]
+            "expire" => {
+                if cmd_length != 3 {
+                    println!("EXPIRE {} 3", constrs::STRING_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                match usize::from_str_radix(usecmds[2].as_str(), 10) {
+                    Ok(ret) => unsafe {
+                        self.expire(usecmds[1].to_string(), ret);
+                    },
+                    Err(error) => {
+                        println!("{}{}", constrs::CMD_IS_FAIL, error);
+                        return;
+                    }
+                }
+            }
+
+            //[pexpire]
+            "pexpire" => {
+                if cmd_length != 3 {
+                    println!("PEXPIRE {} 3", constrs::STRING_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                match usize::from_str_radix(usecmds[2].as_str(), 10) {
+                    Ok(ret) => unsafe {
+                        self.pexpire(usecmds[1].to_string(), ret);
+                    },
+                    Err(error) => {
+                        println!("{}{}", constrs::CMD_IS_FAIL, error);
+                        return;
+                    }
+                }
+            }
+
+            //[Expireat]
+            "expireat" => {
+                if cmd_length != 3 {
+                    println!("Expireat {} 3", constrs::STRING_LENGTH_IS_FAIL);
+                    return;
+                }
+                match usize::from_str_radix(usecmds[2].as_str(), 10) {
+                    Ok(ret) => unsafe {
+                        self.expireat(usecmds[1].to_string(), ret.to_string());
+                    },
+                    Err(error) => {
+                        println!("{}{}", constrs::CMD_IS_FAIL, error);
+                        return;
+                    }
+                }
+            }
+
+            // @ Redis String Operate
+            // like <del,dump,keys,type,exists,pttl>
+            // Commands related to redis string data types are used to manage redis string values
+            // [get] The get command is used to get the value of the specified key.
+            // If the key does not exist, nil is returned.
+            // If the value stored by key is not of string type, an error is returned
+            "get" => {
+                if cmd_length != 2 {
+                    println!("GET {} 2", constrs::STRING_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                unsafe {
+                    self.get(usecmds[1].to_string());
+                }
+            }
+
+            //[set]
+            // The set command is used to set the value of a given key.
+            // If the key already stores other values, set overwrites the old values and ignores the type
+            "set" => {
+                if cmd_length != 3 {
+                    println!("SET {} 3", constrs::STRING_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    self.set(usecmds[1].to_string(), usecmds[2].to_string());
+                }
+            }
+
+            //getset
+            "getset" => {
+                if cmd_length != 3 {
+                    println!("GETSET {} 3", constrs::STRING_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                unsafe {
+                    self.get(usecmds[1].to_string());
+                    self.set(usecmds[1].to_string(), usecmds[2].to_string());
                 }
             }
 
             _ => {
-                println!("{}", crate::constrs::constrs::CMD_IS_FAIL);
+                println!("{}", constrs::CMD_IS_FAIL);
             }
         }
     }
 }
 
 pub trait RunUnsafe {
+    unsafe fn expireat(&self, key: String, timestamp: String);
+    unsafe fn pexpire(&self, key: String, millseconds: usize);
+    unsafe fn expire(&self, key: String, seconds: usize);
     unsafe fn dump(&self, key: String);
     unsafe fn keys(&self, key: String);
     unsafe fn get(&self, key: String);
@@ -148,18 +220,61 @@ pub trait RunUnsafe {
     unsafe fn del(&self, key: String);
     unsafe fn get_type(&self, key: String) -> String;
     unsafe fn pttl_key(&self, key: String);
+    unsafe fn ttl_key(&self, key: String);
     unsafe fn key_is_exists(&self, key: String) -> bool;
     unsafe fn get_ttl(&self, key: String) -> (String, String);
 }
 
 impl RunUnsafe for Cvt {
     #[allow(dead_code)]
+    unsafe fn expireat(&self, key: String, timestamp: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<u64>("EXPIREAT", vec![&timestamp]) {
+            Ok(_) => {
+                println!("expireat success");
+                self.get(key);
+            }
+            Err(_) => {
+                println!("expireat fail!")
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn pexpire(&self, key: String, millseconds: usize) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.pexpire(&key, millseconds) {
+            Ok(_) => {
+                println!("expire success");
+                self.get(key);
+            }
+            Err(_) => {
+                println!("expire fail!")
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn expire(&self, key: String, seconds: usize) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.expire(&key, seconds) {
+            Ok(_) => {
+                println!("expire success");
+                self.get(key);
+            }
+            Err(_) => {
+                println!("expire fail!")
+            }
+        }
+    }
+
+    #[allow(dead_code)]
     unsafe fn dump(&self, key: String) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
         match c.run_command::<Vec<u8>>("DUMP", vec![&key]) {
             Ok(val) => {
                 let str = String::from_utf8_lossy(&val);
-                println!("{}",str)
+                println!("{}", str)
             }
             Err(_error) => {}
         }
@@ -244,11 +359,24 @@ impl RunUnsafe for Cvt {
     }
 
     #[allow(dead_code)]
+    unsafe fn ttl_key(&self, key: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<i32>("TTL", vec![&key]) {
+            Ok(val) => {
+                println!("{} <seconds>", val);
+            }
+            Err(_) => {
+                println!("NIL")
+            }
+        };
+    }
+
+    #[allow(dead_code)]
     unsafe fn pttl_key(&self, key: String) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
         match c.run_command::<i32>("PTTL", vec![&key]) {
             Ok(val) => {
-                println!("{}", val);
+                println!("{} <milliseconds>", val);
             }
             Err(_) => {
                 println!("NIL")

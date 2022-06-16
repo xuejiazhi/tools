@@ -20,3 +20,9 @@ fn test_string_split(){
      /-'Y'-\\
     (__/ \\__)")
 }
+
+#[test]
+fn test_usize(){
+    let v=usize::from_str_radix("xxxxx", 10).is_ok();
+    println!("v->{}",&v)
+}
