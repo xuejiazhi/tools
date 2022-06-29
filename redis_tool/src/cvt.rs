@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     cmd as cvt_cmd,
     cmd::string::Cmd,
@@ -35,7 +37,7 @@ impl Cvt {
             // [del]  This command is used to delete a key when it exists.
             "del" => {
                 if cmd_length != 2 {
-                    println!("DEL {} 2", constrs::STRING_LENGTH_IS_FAIL);
+                    println!("DEL {} 2", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe { self.del(usecmds[1].to_string()) }
@@ -44,7 +46,7 @@ impl Cvt {
             //[dump] Serialize the given key and return the serialized value.
             "dump" => {
                 if cmd_length != 2 {
-                    println!("DUMP {} 2", constrs::STRING_LENGTH_IS_FAIL);
+                    println!("DUMP {} 2", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe {
@@ -55,7 +57,7 @@ impl Cvt {
             //[keys] Find all keys that match the given pattern.
             "keys" => {
                 if cmd_length != 2 {
-                    println!("KEYS {} 2", constrs::STRING_LENGTH_IS_FAIL);
+                    println!("KEYS {} 2", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe { self.keys(usecmds[1].to_string()) }
@@ -64,7 +66,7 @@ impl Cvt {
             //[type] Returns the type of the value stored by the key.
             "type" => {
                 if cmd_length != 2 {
-                    println!("TYPE {} 2", constrs::STRING_LENGTH_IS_FAIL);
+                    println!("TYPE {} 2", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe {
@@ -76,7 +78,7 @@ impl Cvt {
             //[exists] Check whether the given key exists.
             "exists" => {
                 if cmd_length != 2 {
-                    println!("EXISTS {} 2", constrs::STRING_LENGTH_IS_FAIL);
+                    println!("EXISTS {} 2", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe { println!("{}", self.key_is_exists(usecmds[1].to_string())) }
@@ -86,7 +88,7 @@ impl Cvt {
             //Returns the remaining expiration time of the key in milliseconds
             "pttl" => {
                 if cmd_length != 2 {
-                    println!("PTTL {} 2", constrs::STRING_LENGTH_IS_FAIL);
+                    println!("PTTL {} 2", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe {
@@ -98,7 +100,7 @@ impl Cvt {
             //Returns the remaining expiration time of the key in seconds
             "ttl" => {
                 if cmd_length != 2 {
-                    println!("TTL {} 2", constrs::STRING_LENGTH_IS_FAIL);
+                    println!("TTL {} 2", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe {
@@ -107,9 +109,10 @@ impl Cvt {
             }
 
             //[expire]
+            //Sets the expiration time in seconds for the given key.
             "expire" => {
                 if cmd_length != 3 {
-                    println!("EXPIRE {} 3", constrs::STRING_LENGTH_IS_FAIL);
+                    println!("EXPIRE {} 3", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
 
@@ -127,7 +130,7 @@ impl Cvt {
             //[pexpire]
             "pexpire" => {
                 if cmd_length != 3 {
-                    println!("PEXPIRE {} 3", constrs::STRING_LENGTH_IS_FAIL);
+                    println!("PEXPIRE {} 3", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
 
@@ -145,7 +148,7 @@ impl Cvt {
             //[Expireat]
             "expireat" => {
                 if cmd_length != 3 {
-                    println!("Expireat {} 3", constrs::STRING_LENGTH_IS_FAIL);
+                    println!("Expireat {} 3", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
                 match usize::from_str_radix(usecmds[2].as_str(), 10) {
@@ -159,6 +162,94 @@ impl Cvt {
                 }
             }
 
+            //[PExpireat]
+            "pexpireat" => {
+                if cmd_length != 3 {
+                    println!("PExpireat {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                match usize::from_str_radix(usecmds[2].as_str(), 10) {
+                    Ok(ret) => unsafe {
+                        self.pexpireat(usecmds[1].to_string(), ret.to_string());
+                    },
+                    Err(error) => {
+                        println!("{}{}", constrs::CMD_IS_FAIL, error);
+                        return;
+                    }
+                }
+            }
+
+            //[MOVE]
+            "move" => {
+                if cmd_length != 3 {
+                    println!("MOVE {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    self.movedb(usecmds[1].to_string(), usecmds[2].to_string());
+                }
+            }
+
+            //[PERSIST]
+            "persist" => {
+                if cmd_length != 2 {
+                    println!("PERSIST {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    self.persist(usecmds[1].to_string());
+                }
+            }
+
+            //[RANDOMKEY]
+            "randomkey" => {
+                if cmd_length != 1 {
+                    println!("RANDOMKEY {}", constrs::CLI_PARAM_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    self.randomkey();
+                }
+            }
+
+            //[RENAME]
+            "rename" => {
+                if cmd_length != 3 {
+                    println!("RENAME {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    self.rename(usecmds[1].to_string(), usecmds[2].to_string());
+                }
+            }
+
+            //[RENAMENX]
+            "renamenx" => {
+                if cmd_length != 3 {
+                    println!("RENAMENX {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    self.rename(usecmds[1].to_string(), usecmds[2].to_string());
+                }
+            }
+
+            //[SCAN]
+            "scan" => {
+                if cmd_length != 2 {
+                    println!("SCAN {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                match usize::from_str_radix(usecmds[1].as_str(), 10) {
+                    Ok(ret) => unsafe {
+                        self.scan(usecmds[1].to_string());
+                    },
+                    Err(error) => {
+                        println!("{}{}", constrs::CMD_IS_FAIL, error);
+                        return;
+                    }
+                }
+            }
             // @ Redis String Operate
             // like <del,dump,keys,type,exists,pttl>
             // Commands related to redis string data types are used to manage redis string values
@@ -167,7 +258,7 @@ impl Cvt {
             // If the value stored by key is not of string type, an error is returned
             "get" => {
                 if cmd_length != 2 {
-                    println!("GET {} 2", constrs::STRING_LENGTH_IS_FAIL);
+                    println!("GET {} 2", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
 
@@ -181,7 +272,7 @@ impl Cvt {
             // If the key already stores other values, set overwrites the old values and ignores the type
             "set" => {
                 if cmd_length != 3 {
-                    println!("SET {} 3", constrs::STRING_LENGTH_IS_FAIL);
+                    println!("SET {} 3", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
                 unsafe {
@@ -192,7 +283,7 @@ impl Cvt {
             //getset
             "getset" => {
                 if cmd_length != 3 {
-                    println!("GETSET {} 3", constrs::STRING_LENGTH_IS_FAIL);
+                    println!("GETSET {} 3", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
 
@@ -210,6 +301,13 @@ impl Cvt {
 }
 
 pub trait RunUnsafe {
+    unsafe fn scan(&self, cursor: String);
+    unsafe fn renamenx(&self, oldkey: String, newkey: String);
+    unsafe fn rename(&self, oldkey: String, newkey: String);
+    unsafe fn randomkey(&self);
+    unsafe fn persist(&self, key: String);
+    unsafe fn movedb(&self, key: String, db: String);
+    unsafe fn pexpireat(&self, key: String, miltimestamp: String);
     unsafe fn expireat(&self, key: String, timestamp: String);
     unsafe fn pexpire(&self, key: String, millseconds: usize);
     unsafe fn expire(&self, key: String, seconds: usize);
@@ -227,15 +325,123 @@ pub trait RunUnsafe {
 
 impl RunUnsafe for Cvt {
     #[allow(dead_code)]
-    unsafe fn expireat(&self, key: String, timestamp: String) {
+    unsafe fn scan(&self, cursor: String) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
-        match c.run_command::<u64>("EXPIREAT", vec![&timestamp]) {
+        match c.run_command::<HashMap<String,Vec<String>>>("SCAN", vec![&cursor]) {
+            Ok(val) => {
+                for (k, v) in val {
+                    println!("Cursor -> {}", k);
+                    cvt_cmd::string::StringCMD {}.keys(v);
+                } 
+            },
+            Err(error) => {
+                println!("RENAMENX Cli Is Failed!,Error {}", error);
+            },
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn renamenx(&self, oldkey: String, newkey: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.renamenx(&oldkey, &newkey) {
             Ok(_) => {
-                println!("expireat success");
+                println!(
+                    "RENAMENX Success Old key <{}>, New Key <{}>",
+                    oldkey,
+                    newkey.clone()
+                );
+                self.get(newkey)
+            }
+            Err(error) => {
+                println!("RENAMENX Cli Is Failed!,Error {}", error);
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn rename(&self, oldkey: String, newkey: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.rename(&oldkey, &newkey) {
+            Ok(_) => {
+                println!(
+                    "RENAME Success Old key <{}>, New Key <{}>",
+                    oldkey,
+                    newkey.clone()
+                );
+                self.get(newkey)
+            }
+            Err(error) => {
+                println!("RENAME Cli Is Failed!,Error {}", error);
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn randomkey(&self) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<String>("RANDOMKEY", vec![]) {
+            Ok(v) => {
+                let param_type = self.get_type(v.clone());
+                let (ttl, _) = self.get_ttl(v.clone());
+                cvt_cmd::string::StringCMD {}.randomkey(v, param_type, ttl)
+            }
+            Err(_) => {
+                println!("RANDOMKEY Cli Not Get Key!");
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn persist(&self, key: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.persist(&key) {
+            Ok(_) => {
+                println!("Persist Key {} Success", key);
+                self.get(key)
+            }
+            Err(error) => {
+                println!("Move fail! Error {}", error);
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn movedb(&self, key: String, db: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command_empty_response("MOVE", vec![&key, &db]) {
+            Ok(_) => {
+                println!("Move Key {} success!", key);
+            }
+            Err(_) => {
+                println!("Move fail!");
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn pexpireat(&self, key: String, miltimestamp: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command_empty_response("PEXPIREAT", vec![&key, &miltimestamp]) {
+            Ok(_) => {
+                println!("PExpireat success");
                 self.get(key);
             }
             Err(_) => {
-                println!("expireat fail!")
+                println!("PExpireat fail!")
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn expireat(&self, key: String, timestamp: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command_empty_response("EXPIREAT", vec![&key, &timestamp]) {
+            Ok(_) => {
+                println!("Expireat success");
+                self.get(key);
+            }
+            Err(_) => {
+                println!("Expireat fail!")
             }
         }
     }
@@ -245,11 +451,11 @@ impl RunUnsafe for Cvt {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
         match c.pexpire(&key, millseconds) {
             Ok(_) => {
-                println!("expire success");
+                println!("PExpire success");
                 self.get(key);
             }
             Err(_) => {
-                println!("expire fail!")
+                println!("PExpire fail!")
             }
         }
     }
@@ -259,11 +465,11 @@ impl RunUnsafe for Cvt {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
         match c.expire(&key, seconds) {
             Ok(_) => {
-                println!("expire success");
+                println!("Expire success");
                 self.get(key);
             }
             Err(_) => {
-                println!("expire fail!")
+                println!("Expire fail!")
             }
         }
     }

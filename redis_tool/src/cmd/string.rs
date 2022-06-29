@@ -4,6 +4,7 @@ use prettytable::{cell, row, Cell, Row, Table};
 pub struct StringCMD {}
 
 pub trait Cmd {
+    fn randomkey(&self, key: String, typec: String, ttl: String);
     fn keys(&self, data: Vec<String>);
     fn typec(&self, key: String, typec: String);
     fn get(&self, key: String, val: String, ttl: String, err: String);
@@ -13,13 +14,27 @@ pub trait Cmd {
 }
 
 impl Cmd for StringCMD {
+    fn randomkey(&self, key: String, typec: String, ttl: String) {
+        // 创建表格
+        let mut table = Table::new();
+        table.add_row(row!["randomkey", "type", "ttl"]);
+        table.add_row(Row::new(vec![
+            Cell::new(&key),
+            Cell::new(&typec),
+            Cell::new(&ttl),
+        ]));
+
+        // 打印表格到标准输出
+        table.printstd();
+    }
+
     //遍历keys出来的数据
     fn keys(&self, data: Vec<String>) {
         // 创建表格
         let mut table = Table::new();
         table.add_row(row!["number", "key"]);
         for x in 0..data.len() {
-            let number = (x+1).to_string();
+            let number = (x + 1).to_string();
             table.add_row(Row::new(vec![Cell::new(&number), Cell::new(&data[x])]));
         }
 
