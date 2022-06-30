@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-
 use crate::{
     cmd as cvt_cmd,
     cmd::string::Cmd,
     constrs::constrs,
     util::strexpres::{Express, StrExpress},
 };
+use std::collections::HashMap;
 
 /**
  * @explain order
@@ -31,6 +30,10 @@ impl Cvt {
         //match cmd to oprate
         let cmdlist = String::from(&usecmds[0]).to_lowercase();
         match &cmdlist as &str {
+            "help" => cvt_cmd::help::Help {
+                cmd: self.cmd.to_string(),
+            }
+            .new(),
             // @ Redis Key Operate
             // like <del,dump,keys,type,exists,pttl,ttl>
             // Keys used to manage redis
@@ -293,6 +296,9 @@ impl Cvt {
                 }
             }
 
+            //GETRANGE
+            "getrange" => {}
+
             _ => {
                 println!("{}", constrs::CMD_IS_FAIL);
             }
@@ -327,16 +333,16 @@ impl RunUnsafe for Cvt {
     #[allow(dead_code)]
     unsafe fn scan(&self, cursor: String) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
-        match c.run_command::<HashMap<String,Vec<String>>>("SCAN", vec![&cursor]) {
+        match c.run_command::<HashMap<String, Vec<String>>>("SCAN", vec![&cursor]) {
             Ok(val) => {
                 for (k, v) in val {
                     println!("Cursor -> {}", k);
                     cvt_cmd::string::StringCMD {}.keys(v);
-                } 
-            },
+                }
+            }
             Err(error) => {
                 println!("RENAMENX Cli Is Failed!,Error {}", error);
-            },
+            }
         }
     }
 
