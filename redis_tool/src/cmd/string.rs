@@ -1,9 +1,12 @@
+use std::collections::HashMap;
+
 use prettytable::{cell, row, Cell, Row, Table};
 
 #[derive(Debug, Clone)]
 pub struct StringCMD {}
 
 pub trait Cmd {
+    fn mget(&self, data: HashMap<String, String>);
     fn randomkey(&self, key: String, typec: String, ttl: String);
     fn keys(&self, data: Vec<String>);
     fn typec(&self, key: String, typec: String);
@@ -14,6 +17,17 @@ pub trait Cmd {
 }
 
 impl Cmd for StringCMD {
+    fn mget(&self, data: HashMap<String, String>) {
+        // 创建表格
+        let mut table = Table::new();
+        table.add_row(row!["key", "val"]);
+        for (key, val) in data {
+            table.add_row(Row::new(vec![Cell::new(&key), Cell::new(&val)]));
+        }
+        // 打印表格到标准输出
+        table.printstd();
+    }
+
     fn randomkey(&self, key: String, typec: String, ttl: String) {
         // 创建表格
         let mut table = Table::new();

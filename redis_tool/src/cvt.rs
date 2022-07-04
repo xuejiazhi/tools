@@ -4,7 +4,8 @@ use crate::{
     constrs::constrs,
     util::strexpres::{Express, StrExpress},
 };
-use std::collections::HashMap;
+use core::time;
+use std::{collections::HashMap, error::Error, f32::consts::E};
 
 /**
  * @explain order
@@ -297,7 +298,115 @@ impl Cvt {
             }
 
             //GETRANGE
-            "getrange" => {}
+            "getrange" => {
+                if cmd_length != 4 {
+                    println!("GETRANGE {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    match usize::from_str_radix(usecmds[2].as_str(), 10) {
+                        Ok(x) => match usize::from_str_radix(usecmds[3].as_str(), 10) {
+                            Ok(y) => {
+                                self.getrange(usecmds[1].to_string(), x.to_string(), y.to_string());
+                            }
+                            Err(error) => {
+                                println!("{}{}", constrs::CMD_IS_FAIL, error);
+                                return;
+                            }
+                        },
+                        Err(error) => {
+                            println!("{}{}", constrs::CMD_IS_FAIL, error);
+                            return;
+                        }
+                    }
+                }
+            }
+            //GETBIT
+            "getbit" => {
+                if cmd_length != 3 {
+                    println!("GETBIT {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    match usize::from_str_radix(usecmds[2].as_str(), 10) {
+                        Ok(_) => self.getbit(usecmds[1].to_string(), usecmds[2].to_string()),
+                        Err(error) => {
+                            println!("{}{}", constrs::CMD_IS_FAIL, error);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            //GETBIT
+            "setbit" => {
+                if cmd_length != 4 {
+                    println!("SETBIT {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    match usize::from_str_radix(usecmds[2].as_str(), 10) {
+                        Ok(_) => match usize::from_str_radix(usecmds[3].as_str(), 10) {
+                            Ok(_) => self.setbit(
+                                usecmds[1].to_string(),
+                                usecmds[2].to_string(),
+                                usecmds[3].to_string(),
+                            ),
+                            Err(error) => {
+                                println!("{}{}", constrs::CMD_IS_FAIL, error);
+                                return;
+                            }
+                        },
+                        Err(error) => {
+                            println!("{}{}", constrs::CMD_IS_FAIL, error);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            //[MGET]
+            "mget" => {
+                if cmd_length < 2 {
+                    println!("MGET {} 2", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+                let mut vec: Vec<&str> = Vec::new();
+                for i in 1..usecmds.len() {
+                    vec.push(&usecmds[i])
+                }
+                unsafe { self.mget(vec) }
+            }
+
+            //[SETEX]
+            "setex" => {
+                if cmd_length != 4 {
+                    println!("SETEX {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                let timeout = usize::from_str_radix(usecmds[2].as_str(), 10);
+                match timeout {
+                    Ok(t) => unsafe {
+                        self.setex(usecmds[1].to_string(), t, usecmds[3].to_string());
+                    },
+                    Err(error) => {
+                        println!("timeout must numeric {}{}", constrs::CMD_IS_FAIL, error);
+                        return;
+                    }
+                }
+            }
+
+            //[SETNX]
+            "setnx" => {
+                if cmd_length != 3 {
+                    println!("SETNX {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    self.set(usecmds[1].to_string(), usecmds[2].to_string());
+                }
+            }
 
             _ => {
                 println!("{}", constrs::CMD_IS_FAIL);
@@ -307,6 +416,16 @@ impl Cvt {
 }
 
 pub trait RunUnsafe {
+    //string
+    unsafe fn setnx(&self, key: String, value: String);
+    unsafe fn setex(&self, key: String, timeout: usize, value: String);
+    unsafe fn mget(&self, keys: Vec<&str>);
+    unsafe fn setbit(&self, key: String, offset: String, value: String);
+    unsafe fn getbit(&self, key: String, offset: String);
+    unsafe fn getrange(&self, key: String, start: String, end: String);
+    unsafe fn get(&self, key: String);
+    unsafe fn set(&self, key: String, value: String);
+    //keys
     unsafe fn scan(&self, cursor: String);
     unsafe fn renamenx(&self, oldkey: String, newkey: String);
     unsafe fn rename(&self, oldkey: String, newkey: String);
@@ -319,8 +438,6 @@ pub trait RunUnsafe {
     unsafe fn expire(&self, key: String, seconds: usize);
     unsafe fn dump(&self, key: String);
     unsafe fn keys(&self, key: String);
-    unsafe fn get(&self, key: String);
-    unsafe fn set(&self, key: String, value: String);
     unsafe fn del(&self, key: String);
     unsafe fn get_type(&self, key: String) -> String;
     unsafe fn pttl_key(&self, key: String);
@@ -330,6 +447,93 @@ pub trait RunUnsafe {
 }
 
 impl RunUnsafe for Cvt {
+    #[allow(dead_code)]
+    unsafe fn setnx(&self, key: String, value: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.setnx(&key, value.as_str()) {
+            Ok(_) => {
+                cvt_cmd::string::StringCMD {}.set(
+                    key.to_string(),
+                    value.to_string(),
+                    "nil".to_string(),
+                );
+            }
+            Err(_error) => {
+                cvt_cmd::string::StringCMD {}.set(
+                    key.to_string(),
+                    value.to_string(),
+                    _error.to_string(),
+                );
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn setex(&self, key: String, timeout: usize, value: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.setex(&key, value.as_str(), timeout) {
+            Err(error) => println!("Unable to setex value in Redis: {}", error),
+            _ => {
+                println!("setex success");
+                self.get(key)
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn mget(&self, keys: Vec<&str>) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<Vec<String>>("MGET", keys.clone()) {
+            Ok(v) => {
+                let mut map_data = HashMap::new();
+                for k in 0..keys.len() {
+                    map_data.insert(keys[k].to_string(), v[k].to_string());
+                }
+                cvt_cmd::string::StringCMD {}.mget(map_data);
+            }
+            Err(_) => todo!(),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn setbit(&self, key: String, offset: String, value: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<i32>("SETBIT", vec![&key, &offset, &value]) {
+            Ok(v) => {
+                println!("setbit (integer) {}", v);
+            }
+            Err(error) => {
+                println!("setbit error {}", error);
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn getbit(&self, key: String, offset: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<i32>("GETBIT", vec![&key, &offset]) {
+            Ok(v) => {
+                println!("getbit (integer) {}", v);
+            }
+            Err(error) => {
+                println!("getbit error {}", error);
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn getrange(&self, key: String, start: String, end: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<String>("GETRANGE", vec![&key, &start, &end]) {
+            Ok(v) => {
+                println!("{}", v)
+            }
+            Err(error) => {
+                println!("GETRANGE is Fail,Msg is {}", error)
+            }
+        }
+    }
+
     #[allow(dead_code)]
     unsafe fn scan(&self, cursor: String) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
