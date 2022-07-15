@@ -2,10 +2,10 @@ use crate::{
     cmd as cvt_cmd,
     cmd::string::Cmd,
     constrs::constrs,
-    util::strexpres::{Express, StrExpress},
+    util::{strexpres::{Express, StrExpress}, tagregs::{TagRegs, Regs}},
 };
-use core::time;
-use std::{collections::HashMap, error::Error, f32::consts::E};
+
+use std::{collections::HashMap};
 
 /**
  * @explain order
@@ -18,7 +18,9 @@ pub struct Cvt {
 impl Cvt {
     #[allow(dead_code)]
     pub fn convert(&self) {
-        let items: Vec<&str> = self.cmd.split(" ").collect();
+        let tag = TagRegs{}.reg_match_quotation(self.cmd.clone());
+        // let items: Vec<&str> = self.cmd.split(" ").collect();
+        let items: Vec<&str> = tag.split(" ").collect();
         let usecmds = StrExpress {}.del_null(items);
         // .del_null(items);
 
@@ -408,6 +410,24 @@ impl Cvt {
                 }
             }
 
+            //[SETRANGE]
+            "setrange" => {
+                if cmd_length != 4 {
+                    println!("SETRANGE {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                let offset = usize::from_str_radix(usecmds[2].as_str(), 10);
+                match offset {
+                    Ok(t) => unsafe {
+                        self.setex(usecmds[1].to_string(), t, usecmds[3].to_string());
+                    },
+                    Err(error) => {
+                        println!("offset must numeric {}{}", constrs::CMD_IS_FAIL, error);
+                        return;
+                    }
+                }
+            }
+
             _ => {
                 println!("{}", constrs::CMD_IS_FAIL);
             }
@@ -417,6 +437,7 @@ impl Cvt {
 
 pub trait RunUnsafe {
     //string
+    unsafe fn setrange(&self, key: String, offset: String, value: String);
     unsafe fn setnx(&self, key: String, value: String);
     unsafe fn setex(&self, key: String, timeout: usize, value: String);
     unsafe fn mget(&self, keys: Vec<&str>);
@@ -447,6 +468,18 @@ pub trait RunUnsafe {
 }
 
 impl RunUnsafe for Cvt {
+    #[allow(dead_code)]
+    unsafe fn setrange(&self, key: String, offset: String, value: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<i32>("SETRANGE", vec![&key, &offset, &value]) {
+            Ok(i) => {
+                println!("setrange {} success, {}", key.clone(), i);
+                self.get(key)
+            }
+            Err(error) => println!("Unable to setrange value in Redis: {}", error),
+        }
+    }
+
     #[allow(dead_code)]
     unsafe fn setnx(&self, key: String, value: String) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client

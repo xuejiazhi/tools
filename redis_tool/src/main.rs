@@ -19,7 +19,7 @@ extern crate simple_redis;
 
 fn main() -> io::Result<()> {
     let mut parmas = &mut RedisParams {
-        host: String::from("127.0.0.1"),
+        host: String::from("10.161.55.194"),
         port: String::from("6379"),
         db: String::from("0"),
         auth: String::from(""),
@@ -61,7 +61,10 @@ fn main() -> io::Result<()> {
 
         match stdin().read_line(&mut command) {
             Ok(_) => {
-                let cmd = String::from(command.trim());
+                let cmd = String::from(
+                    
+                    
+                    command.trim());
                 //match
                 match &cmd as &str {
                     "quit" => {

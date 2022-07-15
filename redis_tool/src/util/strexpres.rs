@@ -1,3 +1,5 @@
+use super::tagregs::{TagRegs, Regs};
+
 #[derive(Debug, Clone)]
 pub struct StrExpress {}
 
@@ -18,10 +20,14 @@ impl Express for StrExpress {
         if cmdlist.len() > 0 {
             for (_, item) in cmdlist.iter().enumerate() {
                 if *item != "" {
-                    ret.push(String::from(*item))
+                    let re_space_item = TagRegs{}.reg_replace_space((*item).to_string());
+                    ret.push(re_space_item)
+                    // ret.push(String::from(*item))
                 }
             }
         }
         ret
     }
+
+
 }
