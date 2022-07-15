@@ -1,12 +1,13 @@
 mod cmd;
 mod constrs;
+mod convert_test;
 mod cvt;
 mod util;
-mod convert_test;
 
 use std::io::{self, stdin, Write};
 
 use regex::Regex;
+use util::strparse::StrParse;
 
 use crate::{
     cmd::string::Cmd,
@@ -18,17 +19,24 @@ extern crate simple_redis;
 // include!("cvt.rs");
 
 fn main() -> io::Result<()> {
+    //get redis param
+    //host port auth
+    let mut host = String::new();
+    let mut port = String::new();
+    let mut auth = String::new();
+    parse_args(&mut host, &mut port, &mut auth);
     let mut parmas = &mut RedisParams {
-        host: String::from("10.161.55.194"),
-        port: String::from("6379"),
+        host: host,
+        port: port,
         db: String::from("0"),
-        auth: String::from(""),
+        auth: auth,
     };
 
     let clients = &mut parmas.new();
     match clients.echo("Ping") {
         Ok(_) => {
-            println!("  
+            println!(
+                "  
     .-\"\"\"-.
     / .===. \\
     \\/ 6 6 \\/
@@ -42,7 +50,8 @@ fn main() -> io::Result<()> {
      |  |  |
      |__|__|
      /-'Y'-\\
-    (__/ \\__)");
+    (__/ \\__)"
+            );
         }
         Err(_) => {
             println!("Connect Refused,Please Check the NetWork ");
@@ -61,10 +70,7 @@ fn main() -> io::Result<()> {
 
         match stdin().read_line(&mut command) {
             Ok(_) => {
-                let cmd = String::from(
-                    
-                    
-                    command.trim());
+                let cmd = String::from(command.trim());
                 //match
                 match &cmd as &str {
                     "quit" => {
@@ -138,4 +144,11 @@ impl RedisParams {
             Err(error) => panic!("Unable to create Redis client: {}", error),
         }
     }
+}
+
+fn parse_args(host: &mut String, port: &mut String, auth: &mut String) {
+    let sc = StrParse::new();
+    sc.to_string(host, "-h", "10.161.55.194");
+    sc.to_string(port, "-p", "6379");
+    sc.to_string(auth, "-a", "");
 }

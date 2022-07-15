@@ -1,5 +1,4 @@
-use itertools::Itertools;
-use regex::Regex;
+
 
 #[test]
 fn test_string_split(){
@@ -37,7 +36,7 @@ fn test_regex(){
    println!("{}",st.clone());
     // let r = Regex::new(r#"((\$quote\\;){1}(.)*(\$quote\\;){1}\b)"#).unwrap();
 
-    let r = Regex::new(r#"\\u53cc\\u5f15\\u53f7(.)*&patch;"#).unwrap();
+    let r = regex::Regex::new(r#"\\u53cc\\u5f15\\u53f7(.)*&patch;"#).unwrap();
     // if r.is_match(&st) { // if let m = r.find(s) {
     //     println!("Found Matches:")
     // }

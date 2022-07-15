@@ -250,7 +250,7 @@ impl Cvt {
                     return;
                 }
                 match usize::from_str_radix(usecmds[1].as_str(), 10) {
-                    Ok(ret) => unsafe {
+                    Ok(_) => unsafe {
                         self.scan(usecmds[1].to_string());
                     },
                     Err(error) => {
