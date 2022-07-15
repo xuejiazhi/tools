@@ -6,6 +6,7 @@ use prettytable::{cell, row, Cell, Row, Table};
 pub struct StringCMD {}
 
 pub trait Cmd {
+    fn strlen(&self, key: String, length: i32);
     fn mget(&self, data: HashMap<String, String>);
     fn randomkey(&self, key: String, typec: String, ttl: String);
     fn keys(&self, data: Vec<String>);
@@ -17,6 +18,18 @@ pub trait Cmd {
 }
 
 impl Cmd for StringCMD {
+    fn strlen(&self, key: String, length: i32) {
+        // 创建表格
+        let mut table = Table::new();
+        table.add_row(row!["key", "length"]);
+        table.add_row(Row::new(vec![
+            Cell::new(&key),
+            Cell::new(length.to_string().as_str()),
+        ]));
+        // 打印表格到标准输出
+        table.printstd();
+    }
+
     fn mget(&self, data: HashMap<String, String>) {
         // 创建表格
         let mut table = Table::new();

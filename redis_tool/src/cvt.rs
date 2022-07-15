@@ -2,10 +2,13 @@ use crate::{
     cmd as cvt_cmd,
     cmd::string::Cmd,
     constrs::constrs,
-    util::{strexpres::{Express, StrExpress}, tagregs::{TagRegs, Regs}},
+    util::{
+        strexpres::{Express, StrExpress},
+        tagregs::{Regs, TagRegs},
+    },
 };
 
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 /**
  * @explain order
@@ -18,7 +21,7 @@ pub struct Cvt {
 impl Cvt {
     #[allow(dead_code)]
     pub fn convert(&self) {
-        let tag = TagRegs{}.reg_match_quotation(self.cmd.clone());
+        let tag = TagRegs {}.reg_match_quotation(self.cmd.clone());
         // let items: Vec<&str> = self.cmd.split(" ").collect();
         let items: Vec<&str> = tag.split(" ").collect();
         let usecmds = StrExpress {}.del_null(items);
@@ -427,6 +430,16 @@ impl Cvt {
                     }
                 }
             }
+            //[strlen]
+            "strlen" => {
+                if cmd_length != 2 {
+                    println!("STRLEN {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    self.strlen(usecmds[1].to_string());
+                }
+            }
 
             _ => {
                 println!("{}", constrs::CMD_IS_FAIL);
@@ -437,6 +450,7 @@ impl Cvt {
 
 pub trait RunUnsafe {
     //string
+    unsafe fn strlen(&self, key: String);
     unsafe fn setrange(&self, key: String, offset: String, value: String);
     unsafe fn setnx(&self, key: String, value: String);
     unsafe fn setex(&self, key: String, timeout: usize, value: String);
@@ -468,6 +482,19 @@ pub trait RunUnsafe {
 }
 
 impl RunUnsafe for Cvt {
+    #[allow(dead_code)]
+    unsafe fn strlen(&self, key: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.strlen(&key) {
+            Ok(v) => {
+                cvt_cmd::string::StringCMD {}.strlen(key, v);
+            }
+            Err(error) => {
+                println!("strlen error {}", error.to_string())
+            }
+        }
+    }
+
     #[allow(dead_code)]
     unsafe fn setrange(&self, key: String, offset: String, value: String) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
