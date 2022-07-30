@@ -430,6 +430,7 @@ impl Cvt {
                     }
                 }
             }
+
             //[strlen]
             "strlen" => {
                 if cmd_length != 2 {
@@ -453,6 +454,133 @@ impl Cvt {
                 unsafe { self.mset(vec) }
             }
 
+            "msetnx" => {
+                if cmd_length < 3 {
+                    println!("MSETNX {} 3", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+                let mut vec: Vec<&str> = Vec::new();
+                for i in 1..usecmds.len() {
+                    vec.push(&usecmds[i])
+                }
+                unsafe { self.msetnx(vec) }
+            }
+
+            //[PSETEX]
+            "psetex" => {
+                if cmd_length != 4 {
+                    println!("PSETEX {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                let timeout = usize::from_str_radix(usecmds[2].as_str(), 10);
+                match timeout {
+                    Ok(t) => unsafe {
+                        self.psetex(usecmds[1].to_string(), t, usecmds[3].to_string());
+                    },
+                    Err(error) => {
+                        println!("timeout must numeric {}{}", constrs::CMD_IS_FAIL, error);
+                        return;
+                    }
+                }
+            }
+
+            //[INCR]
+            "incr" => {
+                if cmd_length != 2 {
+                    println!("INCR {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                unsafe {
+                    self.incr(usecmds[1].to_string());
+                }
+            }
+
+            //[INCRBY]
+            "incrby" => {
+                if cmd_length != 3 {
+                    println!("INCRBY {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                let t = usize::from_str_radix(usecmds[2].as_str(), 10);
+                match t {
+                    Ok(_) => unsafe {
+                        self.incrby(usecmds[1].to_string(), usecmds[2].to_string());
+                    },
+                    Err(error) => {
+                        println!(
+                            "incrby amount must numeric {}{}",
+                            constrs::CMD_IS_FAIL,
+                            error
+                        );
+                        return;
+                    }
+                }
+            }
+
+            "incrbyfloat" => {
+                if cmd_length != 3 {
+                    println!("INCRBYFLOAT {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                match usecmds[2].as_str().parse::<f64>() {
+                    Ok(_) => unsafe {
+                        self.incrbyfloat(usecmds[1].to_string(), usecmds[2].to_string())
+                    },
+                    Err(e) => {
+                        println!("error=>{}", e.to_string());
+                        return;
+                    }
+                }
+            }
+
+            //[DECR]
+            "decr" => {
+                if cmd_length != 2 {
+                    println!("DECR {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    self.decr(usecmds[1].to_string());
+                }
+            }
+
+            //[DECRBY]
+            "decrby" => {
+                if cmd_length != 3 {
+                    println!("DECRBY {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                //judge 
+                let t = usize::from_str_radix(usecmds[2].as_str(), 10);
+                match t {
+                    Ok(_) => unsafe {
+                        self.decrby(usecmds[1].to_string(), usecmds[2].to_string());
+                    },
+                    Err(error) => {
+                        println!(
+                            "decrby amount must numeric {}{}",
+                            constrs::CMD_IS_FAIL,
+                            error
+                        );
+                        return;
+                    }
+                }
+            }
+
+            "append" =>{
+                if cmd_length != 3 {
+                    println!("APPEND {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe{
+                    self.append(usecmds[1].to_string(), usecmds[2].to_string())
+                }
+            }
+
             _ => {
                 println!("{}", constrs::CMD_IS_FAIL);
             }
@@ -462,6 +590,14 @@ impl Cvt {
 
 pub trait RunUnsafe {
     //string
+    unsafe fn append(&self, key: String, value: String);
+    unsafe fn decrby(&self, key: String, value: String);
+    unsafe fn decr(&self, key: String);
+    unsafe fn incrbyfloat(&self, key: String, value: String);
+    unsafe fn incrby(&self, key: String, value: String);
+    unsafe fn incr(&self, key: String);
+    unsafe fn psetex(&self, key: String, timeout: usize, value: String);
+    unsafe fn msetnx(&self, keys: Vec<&str>);
     unsafe fn mset(&self, keys: Vec<&str>);
     unsafe fn strlen(&self, key: String);
     unsafe fn setrange(&self, key: String, offset: String, value: String);
@@ -495,6 +631,113 @@ pub trait RunUnsafe {
 }
 
 impl RunUnsafe for Cvt {
+    #[allow(dead_code)]
+    unsafe fn append(&self, key: String, value: String){
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.append(&key,&value){
+            Ok(_) => {
+                println!("append {} success (^v^)",key.clone());
+                self.get(key)
+            },
+            Err(e) => {
+                println!("{}",e.to_string())
+            },
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn decrby(&self, key: String, value: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<i64>("DECRBY", vec![&key, &value]) {
+            Ok(v) => {
+                println!("(integer) {}", v)
+            }
+            Err(e) => {
+                println!("decrby error:{}", e.to_string());
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn decr(&self, key: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<i64>("DECR", vec![&key]) {
+            Ok(v) => {
+                println!("(integer) {}", v)
+            }
+            Err(e) => {
+                println!("incr error:{}", e.to_string());
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn incrbyfloat(&self, key: String, value: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.incrbyfloat(&key, &*value) {
+            Ok(v) => {
+                println!("(float64) {}", v)
+            }
+            Err(e) => {
+                println!("incrbyfloat error:{}", e.to_string());
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn incrby(&self, key: String, value: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.incrby(&key, &*value) {
+            Ok(v) => {
+                println!("(integer) {}", v)
+            }
+            Err(e) => {
+                println!("incrby error:{}", e.to_string());
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn incr(&self, key: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.incr(&key) {
+            Ok(v) => {
+                println!("(integer) {}", v)
+            }
+            Err(e) => {
+                println!("incr error:{}", e.to_string());
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn psetex(&self, key: String, timeout: usize, value: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command_empty_response(
+            "PSETEX",
+            vec![&key, &*timeout.to_string(), &value.to_string()],
+        ) {
+            Err(error) => println!("Unable to psetex value in Redis: {}", error),
+            _ => {
+                println!("psetex success");
+                self.get(key)
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn msetnx(&self, keys: Vec<&str>) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<i32>("MSETNX", keys.clone()) {
+            Ok(v) => {
+                println!("{}", v)
+            }
+            Err(e) => {
+                println!("{}", e.to_string())
+            }
+        }
+    }
+
     #[allow(dead_code)]
     unsafe fn mset(&self, keys: Vec<&str>) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
