@@ -21,11 +21,11 @@ pub struct Cvt {
 impl Cvt {
     #[allow(dead_code)]
     pub fn convert(&self) {
-        let tag = TagRegs {}.reg_match_quotation(self.cmd.clone());
-        // let items: Vec<&str> = self.cmd.split(" ").collect();
+        let tag = TagRegs {}.reg_captures(self.cmd.clone());
+        // println!("tag->{}",tag.clone());
         let items: Vec<&str> = tag.split(" ").collect();
         let usecmds = StrExpress {}.del_null(items);
-        // .del_null(items);
+        // println!("{:?}",usecmds.clone());
 
         let cmd_length = usecmds.len();
         if cmd_length == 0 {
@@ -441,6 +441,18 @@ impl Cvt {
                 }
             }
 
+            "mset" => {
+                if cmd_length < 3 {
+                    println!("MSET {} 3", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+                let mut vec: Vec<&str> = Vec::new();
+                for i in 1..usecmds.len() {
+                    vec.push(&usecmds[i])
+                }
+                unsafe { self.mset(vec) }
+            }
+
             _ => {
                 println!("{}", constrs::CMD_IS_FAIL);
             }
@@ -450,6 +462,7 @@ impl Cvt {
 
 pub trait RunUnsafe {
     //string
+    unsafe fn mset(&self, keys: Vec<&str>);
     unsafe fn strlen(&self, key: String);
     unsafe fn setrange(&self, key: String, offset: String, value: String);
     unsafe fn setnx(&self, key: String, value: String);
@@ -482,6 +495,19 @@ pub trait RunUnsafe {
 }
 
 impl RunUnsafe for Cvt {
+    #[allow(dead_code)]
+    unsafe fn mset(&self, keys: Vec<&str>) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<String>("MSET", keys.clone()) {
+            Ok(v) => {
+                println!("{}", v)
+            }
+            Err(e) => {
+                println!("{}", e.to_string())
+            }
+        }
+    }
+
     #[allow(dead_code)]
     unsafe fn strlen(&self, key: String) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
