@@ -1,6 +1,6 @@
 use crate::{
     cmd as cvt_cmd,
-    cmd::string::Cmd,
+    cmd::{hash::Cmd as OtherCmd, string::Cmd},
     constrs::constrs,
     util::{
         strexpres::{Express, StrExpress},
@@ -554,7 +554,7 @@ impl Cvt {
                     println!("DECRBY {} 3", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
-                //judge 
+                //judge
                 let t = usize::from_str_radix(usecmds[2].as_str(), 10);
                 match t {
                     Ok(_) => unsafe {
@@ -571,14 +571,61 @@ impl Cvt {
                 }
             }
 
-            "append" =>{
+            "append" => {
                 if cmd_length != 3 {
                     println!("APPEND {} 3", constrs::CLI_LENGTH_IS_FAIL);
                     return;
                 }
-                unsafe{
-                    self.append(usecmds[1].to_string(), usecmds[2].to_string())
+                unsafe { self.append(usecmds[1].to_string(), usecmds[2].to_string()) }
+            }
+
+            /* HASH  操作 */
+            //[HSET]
+            "hset" => {
+                if cmd_length != 4 {
+                    println!("HSET {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
                 }
+                unsafe {
+                    self.hset(
+                        usecmds[1].to_string(),
+                        usecmds[2].to_string(),
+                        usecmds[3].to_string(),
+                    )
+                }
+            }
+
+            "hget" => {
+                if cmd_length != 3 {
+                    println!("HGET {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe { self.hget(usecmds[1].to_string(), usecmds[2].to_string()) }
+            }
+
+            "hdel" => {
+                if cmd_length < 3 {
+                    println!("HDEL {} 3", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+                unsafe { self.hget(usecmds[1].to_string(), usecmds[2].to_string()) }
+            }
+
+            //[HEXISTS]
+            "hexists" => {
+                if cmd_length != 3 {
+                    println!("HEXISTS {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe { self.hexists(usecmds[1].to_string(), usecmds[2].to_string()) }
+            }
+
+            "hgetall" => {
+                if cmd_length != 2 {
+                    println!("HGETALL {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe { self.hgetall(usecmds[1].to_string()) }
             }
 
             _ => {
@@ -589,7 +636,13 @@ impl Cvt {
 }
 
 pub trait RunUnsafe {
-    //string
+    //HASH
+    unsafe fn hgetall(&self, key: String);
+    unsafe fn hexists(&self, key: String, field: String);
+    unsafe fn hdel(&self, key: String, field: String);
+    unsafe fn hget(&self, key: String, field: String);
+    unsafe fn hset(&self, key: String, field: String, value: String);
+    //STRING
     unsafe fn append(&self, key: String, value: String);
     unsafe fn decrby(&self, key: String, value: String);
     unsafe fn decr(&self, key: String);
@@ -632,16 +685,95 @@ pub trait RunUnsafe {
 
 impl RunUnsafe for Cvt {
     #[allow(dead_code)]
-    unsafe fn append(&self, key: String, value: String){
+    unsafe fn hgetall(&self, key: String) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
-        match c.append(&key,&value){
-            Ok(_) => {
-                println!("append {} success (^v^)",key.clone());
-                self.get(key)
-            },
+        match c.hgetall(&key) {
+            Ok(map) => {
+                cvt_cmd::hash::HashCMD {}.hgetall(map);
+            }
+            Err(error) => println!("Unable to read map from Redis: {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn hexists(&self, key: String, field: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.hexists(&key, &field) {
+            Ok(v) => {
+                if v {
+                    println!(
+                        "hexists hash key {} field {} exists!",
+                        key.clone(),
+                        field.clone()
+                    );
+                    match c.hget::<String>(&key, &field) {
+                        Ok(v) => cvt_cmd::hash::HashCMD {}.hget(key, field, v),
+                        Err(e) => {
+                            println!("Hexists error: {}", e.to_string())
+                        }
+                    }
+                } else {
+                    println!(
+                        "hexists hash key {} field {} not exists!",
+                        key.clone(),
+                        field.clone()
+                    )
+                }
+            }
             Err(e) => {
-                println!("{}",e.to_string())
-            },
+                println!("hexists error {}", e.to_string())
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn hdel(&self, key: String, field: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.hdel(&key, &field) {
+            Ok(_) => {
+                println!("hdel hash key {} field {} success (^v^)", key, field);
+            }
+            Err(e) => {
+                println!("Hget error: {}", e.to_string())
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn hget(&self, key: String, field: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.hget::<String>(&key, &field) {
+            Ok(v) => cvt_cmd::hash::HashCMD {}.hget(key, field, v),
+            Err(e) => {
+                println!("Hget error: {}", e.to_string())
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn hset(&self, key: String, field: String, value: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.hset(&key, &field, &*value) {
+            Ok(_) => {
+                println!("hset hash key {} field {} success (^v^)", key, field);
+            }
+            Err(e) => {
+                println!("{}", e.to_string())
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn append(&self, key: String, value: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.append(&key, &value) {
+            Ok(_) => {
+                println!("append {} success (^v^)", key.clone());
+                self.get(key)
+            }
+            Err(e) => {
+                println!("{}", e.to_string())
+            }
         }
     }
 
