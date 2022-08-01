@@ -1,5 +1,3 @@
-use regex::Regex;
-
 #[test]
 fn test_string_split() {
     let cmd = "get test";
@@ -68,7 +66,7 @@ fn test_capture() {
         let chr = item as char;
         //判断是否是单引号
         if chr.to_string() == "'" {
-            p = add(p);
+            p = add_test(p);
             if p.clone() % 2 == 0 {
                 cv = false;
             } else {
@@ -85,12 +83,13 @@ fn test_capture() {
         
         println!("txt->{}",cap);
     }
+    fn add_test(mut x: i32) -> i32 {
+        x = x + 1;
+        x
+    }
 }
 
-fn add(mut x: i32) -> i32 {
-    x = x + 1;
-    x
-}
+
 
 
 #[test]

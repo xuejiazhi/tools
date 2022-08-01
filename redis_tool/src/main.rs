@@ -3,6 +3,7 @@ mod constrs;
 mod convert_test;
 mod cvt;
 mod util;
+mod help;
 
 use std::io::{self, stdin, Write};
 

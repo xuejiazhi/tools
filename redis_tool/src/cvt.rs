@@ -2,13 +2,14 @@ use crate::{
     cmd as cvt_cmd,
     cmd::{hash::Cmd as OtherCmd, string::Cmd},
     constrs::constrs,
+    help::route::Route,
     util::{
         strexpres::{Express, StrExpress},
         tagregs::{Regs, TagRegs},
     },
 };
 
-use std::{collections::HashMap, error::Error};
+use std::collections::HashMap;
 
 /**
  * @explain order
@@ -36,7 +37,7 @@ impl Cvt {
         //match cmd to oprate
         let cmdlist = String::from(&usecmds[0]).to_lowercase();
         match &cmdlist as &str {
-            "help" => cvt_cmd::help::Help {
+            "help" => Route {
                 cmd: self.cmd.to_string(),
             }
             .new(),
@@ -747,7 +748,7 @@ impl Cvt {
 
             //[HSCAN]
             "hscan" => {
-                if cmd_length < 5 || cmd_length>7 {
+                if cmd_length < 5 || cmd_length > 7 {
                     println!("HSCAN length is Failed");
                     return;
                 }
@@ -768,7 +769,7 @@ impl Cvt {
 
 pub trait RunUnsafe {
     //HASH
-    unsafe fn hscan(&self,keys: Vec<&str>);
+    unsafe fn hscan(&self, keys: Vec<&str>);
     unsafe fn hvals(&self, key: String);
     unsafe fn hsetnx(&self, key: String, field: String, value: String);
     unsafe fn hmset(&self, keys: Vec<&str>);
@@ -825,11 +826,11 @@ pub trait RunUnsafe {
 
 impl RunUnsafe for Cvt {
     #[allow(dead_code)]
-    unsafe fn hscan(&self,keys: Vec<&str>){
+    unsafe fn hscan(&self, keys: Vec<&str>) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
         match c.run_command::<Vec<String>>("HSCAN", keys.clone()) {
             Ok(v) => {
-                println!("hscan->{:?}",v);
+                println!("hscan->{:?}", v);
             }
             Err(e) => {
                 println!("{}", e.to_string())
@@ -838,12 +839,12 @@ impl RunUnsafe for Cvt {
     }
 
     #[allow(dead_code)]
-    unsafe fn hvals(&self, key: String){
+    unsafe fn hvals(&self, key: String) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
-        match  c.hvals(&key){
+        match c.hvals(&key) {
             Ok(v) => {
                 cvt_cmd::hash::HashCMD {}.hkeys(v);
-            },
+            }
             Err(error) => println!("hvals hash key {} error : {}", key, error),
         }
     }

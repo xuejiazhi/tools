@@ -48,7 +48,7 @@ impl Regs for TagRegs {
         for &item in bytes.iter() {
             let chr = item as char;
             if chr.to_string() == "'" {
-                p = function::add(p);
+                p = function::add_plus(p);
                 if p.clone() % 2 == 0 {
                     cv = false;
                 } else {

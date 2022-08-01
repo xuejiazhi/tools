@@ -3,11 +3,13 @@ use crate::{
     util::strexpres::{Express, StrExpress},
 };
 
-pub struct Help {
+use super::key::{Help, KeyHelp};
+
+pub struct Route {
     pub(crate) cmd: String,
 }
 
-impl Help {
+impl Route {
     pub fn new(&self) {
         let items: Vec<&str> = self.cmd.split(" ").collect();
         let usecmds = StrExpress {}.del_null(items);
@@ -24,8 +26,14 @@ impl Help {
                 2 => {
                     let cmdlist = String::from(&usecmds[1]).to_lowercase();
                     match &cmdlist as &str {
-                        "del" => self.help_del(),
-                        "dump" => self.help_dump(),
+                        //help key route
+                        "del" => KeyHelp {}.help_del(),
+                        "dump" => KeyHelp {}.help_dump(),
+                        "exists" => KeyHelp {}.help_exists(),
+                        "expire" => KeyHelp {}.help_expire(),
+                        "expireat" => KeyHelp{}.help_expireat(),
+                        "pexpire" => KeyHelp{}.help_pexpire(),
+                        "pexpireat" => KeyHelp{}.help_pexpireat(),
                         _ => {}
                     }
                 }
@@ -62,78 +70,5 @@ RENAMENX          仅当 newkey 不存在时，将 key 改名为 newkey
 SCAN              迭代数据库中的数据库键
 TYPE              返回 key 所储存的值的类型
         ")
-    }
-}
-
-pub trait HelpDetail {
-    fn help_dump(&self);
-    fn help_del(&self);
-}
-
-impl HelpDetail for Help {
-    fn help_dump(&self) {
-        println!(
-            "	
-            ## Redis DUMP 命令用于序列化给定 key ,并返回被序列化的值。
-
-            ## 语法
-            redis DUMP 命令基本语法如下：
-        
-              redis 127.0.0.1:6379> DUMP KEY_NAME
-            ## 可用版本
-              >= 2.6.0
-        
-            ## 返回值
-              如果 key 不存在，那么返回 nil 。 否则，返回序列化之后的值。
-        
-            ## 实例
-              首先，我们在 redis 中创建一个 key 并设置值。
-        
-              redis> SET greeting 'hello, dumping world!'
-              OK
-            现在使用 DUMP 序列化键值。
-        
-            redis> DUMP greeting
-            \\x00\\x15hello, dumping world!\\x06\\x00E\\xa0Z\\x82\\xd8r\\xc1\\xde
-
-            redis> DUMP not-exists-key
-            (nil)
-"
-        )
-    }
-
-    fn help_del(&self) {
-        println!(
-            "
-## Redis DEL 命令用于删除已存在的键。不存在的 key 会被忽略。
-
-## 语法
-  redis DEL 命令基本语法如下：
-
-  redis 127.0.0.1:6379> DEL KEY_NAME
-## 可用版本
-  >= 1.0.0
-
-## 返回值
-  被删除 key 的数量。
-
-## 实例
-  首先，我们在 redis 中创建一个 key 并设置值。
-
-  127.0.0.1:6379~[db0]#> set testKey hello
-    +------+---------+-------+---------+
-    | walk | key     | val   | result  |
-    +------+---------+-------+---------+
-    | SET  | testKey | hello | Success |
-    +------+---------+-------+---------+
-## 现在我们删除已创建的 key。
-  127.0.0.1:6379~[db0]#> del testKey
-    +------+---------+---------+
-    | walk | key     | result  |
-    +------+---------+---------+
-    | DEL  | testKey | Success |
-    +------+---------+---------+
-        "
-        )
     }
 }
