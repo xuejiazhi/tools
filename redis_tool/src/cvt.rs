@@ -8,7 +8,7 @@ use crate::{
     },
 };
 
-use std::collections::HashMap;
+use std::{collections::HashMap, error::Error};
 
 /**
  * @explain order
@@ -608,7 +608,7 @@ impl Cvt {
                     println!("HDEL {} 3", constrs::CLI_LENGTH_TAHN);
                     return;
                 }
-                unsafe { self.hget(usecmds[1].to_string(), usecmds[2].to_string()) }
+                unsafe { self.hdel(usecmds[1].to_string(), usecmds[2].to_string()) }
             }
 
             //[HEXISTS]
@@ -628,6 +628,137 @@ impl Cvt {
                 unsafe { self.hgetall(usecmds[1].to_string()) }
             }
 
+            //[HINCRBY]
+            "hincrby" => {
+                if cmd_length != 4 {
+                    println!("HINCRBY {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                let t = usize::from_str_radix(usecmds[3].as_str(), 10);
+                match t {
+                    Ok(_) => unsafe {
+                        self.hincrby(
+                            usecmds[1].to_string(),
+                            usecmds[2].to_string(),
+                            usecmds[3].to_string(),
+                        )
+                    },
+                    Err(error) => {
+                        println!(
+                            "hincrby incrby amount must numeric {}{}",
+                            constrs::CMD_IS_FAIL,
+                            error
+                        );
+                        return;
+                    }
+                }
+            }
+
+            //[HINCRBYFLOAT]
+            "hincrbyfloat" => {
+                if cmd_length != 4 {
+                    println!("HINCRBYFLOAT {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                match usecmds[3].as_str().parse::<f64>() {
+                    Ok(_) => unsafe {
+                        self.hincrbyfloat(
+                            usecmds[1].to_string(),
+                            usecmds[2].to_string(),
+                            usecmds[3].to_string(),
+                        )
+                    },
+                    Err(e) => {
+                        println!("error=>{}", e.to_string());
+                        return;
+                    }
+                }
+            }
+
+            "hkeys" => {
+                if cmd_length != 2 {
+                    println!("HKEYS {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                unsafe { self.hkeys(usecmds[1].to_string()) }
+            }
+
+            "hlen" => {
+                if cmd_length != 2 {
+                    println!("HLEN {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                unsafe { self.hlen(usecmds[1].to_string()) }
+            }
+
+            //[HMGET]
+            "hmget" => {
+                if cmd_length < 3 {
+                    println!("HMGET {} 3", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+                let mut vec: Vec<&str> = Vec::new();
+                for i in 1..usecmds.len() {
+                    vec.push(&usecmds[i])
+                }
+                unsafe { self.hmget(vec) }
+            }
+
+            //[HMSET]
+            "hmset" => {
+                if cmd_length < 4 {
+                    println!("HMSET {} 4", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+
+                let mut vec: Vec<&str> = Vec::new();
+                for i in 1..usecmds.len() {
+                    vec.push(&usecmds[i])
+                }
+                unsafe { self.hmset(vec) }
+            }
+
+            //[HSETNX]
+            "hsetnx" => {
+                if cmd_length != 4 {
+                    println!("HSETNX {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    self.hsetnx(
+                        usecmds[1].to_string(),
+                        usecmds[2].to_string(),
+                        usecmds[3].to_string(),
+                    )
+                }
+            }
+
+            //[HVALS]
+            "hvals" => {
+                if cmd_length != 2 {
+                    println!("HVALS {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe { self.hvals(usecmds[1].to_string()) }
+            }
+
+            //[HSCAN]
+            "hscan" => {
+                if cmd_length < 5 || cmd_length>7 {
+                    println!("HSCAN length is Failed");
+                    return;
+                }
+                //判断cursor
+                let mut vec: Vec<&str> = Vec::new();
+                for i in 1..usecmds.len() {
+                    vec.push(&usecmds[i])
+                }
+                unsafe { self.hscan(vec) }
+            }
+
             _ => {
                 println!("{}", constrs::CMD_IS_FAIL);
             }
@@ -637,6 +768,15 @@ impl Cvt {
 
 pub trait RunUnsafe {
     //HASH
+    unsafe fn hscan(&self,keys: Vec<&str>);
+    unsafe fn hvals(&self, key: String);
+    unsafe fn hsetnx(&self, key: String, field: String, value: String);
+    unsafe fn hmset(&self, keys: Vec<&str>);
+    unsafe fn hmget(&self, keys: Vec<&str>);
+    unsafe fn hlen(&self, key: String);
+    unsafe fn hkeys(&self, key: String);
+    unsafe fn hincrbyfloat(&self, key: String, field: String, value: String);
+    unsafe fn hincrby(&self, key: String, field: String, incr_number: String);
     unsafe fn hgetall(&self, key: String);
     unsafe fn hexists(&self, key: String, field: String);
     unsafe fn hdel(&self, key: String, field: String);
@@ -684,6 +824,116 @@ pub trait RunUnsafe {
 }
 
 impl RunUnsafe for Cvt {
+    #[allow(dead_code)]
+    unsafe fn hscan(&self,keys: Vec<&str>){
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<Vec<String>>("HSCAN", keys.clone()) {
+            Ok(v) => {
+                println!("hscan->{:?}",v);
+            }
+            Err(e) => {
+                println!("{}", e.to_string())
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn hvals(&self, key: String){
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match  c.hvals(&key){
+            Ok(v) => {
+                cvt_cmd::hash::HashCMD {}.hkeys(v);
+            },
+            Err(error) => println!("hvals hash key {} error : {}", key, error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn hsetnx(&self, key: String, field: String, value: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.hsetnx(&key, &field, &*value) {
+            Ok(_) => {
+                println!("hsetnx field {} success", field);
+                self.hget(key, field)
+            }
+            Err(error) => println!("hsetnx hash key {} field {} error : {}", key, field, error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn hmset(&self, keys: Vec<&str>) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<String>("HMSET", keys.clone()) {
+            Ok(v) => {
+                println!("hmset {}", v)
+            }
+            Err(e) => {
+                println!("{}", e.to_string())
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn hmget(&self, keys: Vec<&str>) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<Vec<String>>("HMGET", keys.clone()) {
+            Ok(v) => {
+                let mut map_data = HashMap::new();
+                for k in 1..keys.len() {
+                    map_data.insert(keys[k].to_string(), v[k - 1].to_string());
+                }
+                cvt_cmd::string::StringCMD {}.mget(map_data);
+            }
+            Err(error) => println!("hmget hash key {}  error : {}", keys[0], error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn hlen(&self, key: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<i32>("HLEN", vec![&key]) {
+            Ok(v) => {
+                println!("hlen hash key ({}) field length is {} !", key, v)
+            }
+            Err(error) => println!("hlen hash key {} error : {}", key, error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn hkeys(&self, key: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.hkeys(&key) {
+            Ok(v) => {
+                cvt_cmd::hash::HashCMD {}.hkeys(v);
+            }
+            Err(error) => println!("hkeys key {} error : {}", key, error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn hincrbyfloat(&self, key: String, field: String, value: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<f64>("HINCRBYFLOAT", vec![&key, &field, &value]) {
+            Ok(_) => {
+                println!("hincrbyfloat key {} field {} success!", key, field);
+                self.hget(key, field)
+            }
+            Err(error) => println!("hincrbyfloat key {} field {} error : {}", key, field, error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn hincrby(&self, key: String, field: String, incr_number: String) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<i32>("HINCRBY", vec![&key, &field, &incr_number]) {
+            Ok(_) => {
+                println!("hincrby key {} field {} success!", key, field);
+                self.hget(key, field)
+            }
+            Err(error) => println!("hincrby key {} field {} error : {}", key, field, error),
+        }
+    }
+
     #[allow(dead_code)]
     unsafe fn hgetall(&self, key: String) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
@@ -734,7 +984,7 @@ impl RunUnsafe for Cvt {
                 println!("hdel hash key {} field {} success (^v^)", key, field);
             }
             Err(e) => {
-                println!("Hget error: {}", e.to_string())
+                println!("Hdel error: {}", e.to_string())
             }
         }
     }

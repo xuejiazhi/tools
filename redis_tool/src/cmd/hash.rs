@@ -7,10 +7,24 @@ pub struct HashCMD {}
 
 pub trait Cmd {
     fn hget(&self, key: String, field: String, val: String);
-    fn hgetall(&self,data: HashMap<String, String>);
+    fn hgetall(&self, data: HashMap<String, String>);
+    fn hkeys(&self, data: Vec<String>);
 }
 
 impl Cmd for HashCMD {
+    fn hkeys(&self, data: Vec<String>) {
+        // 创建表格
+        let mut table = Table::new();
+        table.add_row(row!["number", "field"]);
+        for x in 0..data.len() {
+            let number = (x + 1).to_string();
+            table.add_row(Row::new(vec![Cell::new(&number), Cell::new(&data[x])]));
+        }
+
+        // 打印表格到标准输出
+        table.printstd();
+    }
+
     fn hget(&self, key: String, field: String, val: String) {
         // 创建表格
         let mut table = Table::new();
@@ -24,7 +38,7 @@ impl Cmd for HashCMD {
         table.printstd();
     }
 
-    fn hgetall(&self,data: HashMap<String, String>){
+    fn hgetall(&self, data: HashMap<String, String>) {
         // 创建表格
         let mut table = Table::new();
         table.add_row(row!["field", "value"]);
