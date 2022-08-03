@@ -31,9 +31,19 @@ impl Route {
                         "dump" => KeyHelp {}.help_dump(),
                         "exists" => KeyHelp {}.help_exists(),
                         "expire" => KeyHelp {}.help_expire(),
-                        "expireat" => KeyHelp{}.help_expireat(),
-                        "pexpire" => KeyHelp{}.help_pexpire(),
-                        "pexpireat" => KeyHelp{}.help_pexpireat(),
+                        "expireat" => KeyHelp {}.help_expireat(),
+                        "pexpire" => KeyHelp {}.help_pexpire(),
+                        "pexpireat" => KeyHelp {}.help_pexpireat(),
+                        "keys" => KeyHelp {}.help_keys(),
+                        "move" => KeyHelp {}.help_move(),
+                        "persist" => KeyHelp {}.help_persist(),
+                        "pttl" => KeyHelp {}.help_pttl(),
+                        "ttl" => KeyHelp {}.help_ttl(),
+                        "randomkey" => KeyHelp {}.help_randomkey(),
+                        "rename" => KeyHelp {}.help_rename(),
+                        "renamenx" => KeyHelp {}.help_rename(),
+                        "scan" => KeyHelp {}.help_scan(),
+                        "type" => KeyHelp {}.help_type(),
                         _ => {}
                     }
                 }
