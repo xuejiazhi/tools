@@ -1,6 +1,6 @@
 use crate::{
     cmd as cvt_cmd,
-    cmd::{hash::Cmd as OtherCmd, string::Cmd},
+    cmd::{hash::Cmd as HashCmd, list::Cmd as ListCmd, string::Cmd},
     constrs::constrs,
     help::route::Route,
     util::{
@@ -760,6 +760,109 @@ impl Cvt {
                 unsafe { self.hscan(vec) }
             }
 
+            // redis list 列表相关命令的实现
+            // Redis列表是简单的字符串列表，按照插入顺序排序。你可以添加一个元素到列表的头部（左边）或者尾部（右边）
+            // 一个列表最多可以包含 232 - 1 个元素 (4294967295, 每个列表超过40亿个元素)
+
+            //[LPUSH]
+            "lpush" => {
+                if cmd_length < 3 {
+                    println!("LPUSH {} 4", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+
+                let mut vec: Vec<&str> = Vec::new();
+                for i in 2..usecmds.len() {
+                    vec.push(&usecmds[i])
+                }
+
+                unsafe { self.lpush(usecmds[1].to_string(), vec) }
+            }
+            //[BLPOP]
+            "blpop" => {
+                if cmd_length < 3 {
+                    println!("BLPOP {} 3", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+
+                let mut vec: Vec<&str> = Vec::new();
+                for i in 1..usecmds.len() {
+                    vec.push(&usecmds[i])
+                }
+
+                match usize::from_str_radix(usecmds[&usecmds.len() - 1].as_str(), 10) {
+                    Ok(_) => unsafe {
+                        self.blpop(vec);
+                    },
+                    Err(error) => {
+                        println!("BLPOP {}{}", constrs::CMD_IS_FAIL, error);
+                        return;
+                    }
+                }
+            }
+
+            //[BRPOP]
+            "brpop" => {
+                if cmd_length < 3 {
+                    println!("BRPOP {} 3", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+
+                let mut vec: Vec<&str> = Vec::new();
+                for i in 1..usecmds.len() {
+                    vec.push(&usecmds[i])
+                }
+
+                match usize::from_str_radix(usecmds[&usecmds.len() - 1].as_str(), 10) {
+                    Ok(_) => unsafe {
+                        self.brpop(vec);
+                    },
+                    Err(error) => {
+                        println!("BRPOP {}{}", constrs::CMD_IS_FAIL, error);
+                        return;
+                    }
+                }
+            }
+
+            //[BRPOPLPUSH]
+            "brpoplpush" => {
+                if cmd_length < 4 {
+                    println!("BRPOPLPUSH {} 4", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+
+                let mut vec: Vec<&str> = Vec::new();
+                for i in 1..usecmds.len() {
+                    vec.push(&usecmds[i])
+                }
+
+                match usize::from_str_radix(usecmds[&usecmds.len() - 1].as_str(), 10) {
+                    Ok(_) => unsafe {
+                        self.brpoplpush(vec);
+                    },
+                    Err(error) => {
+                        println!("BRPOPLPUSH {}{}", constrs::CMD_IS_FAIL, error);
+                        return;
+                    }
+                }
+            }
+
+            //[LINDEX]
+            "lindex" => {
+                if cmd_length != 3 {
+                    println!("LINDEX {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                match usize::from_str_radix(usecmds[2].as_str(), 10) {
+                    Ok(v) => unsafe { self.lindex(usecmds[1].as_str().to_string(), v) },
+                    Err(error) => {
+                        println!("LINDEX {}{}", constrs::CMD_IS_FAIL, error);
+                        return;
+                    }
+                }
+            }
+
             _ => {
                 println!("{}", constrs::CMD_IS_FAIL);
             }
@@ -768,6 +871,13 @@ impl Cvt {
 }
 
 pub trait RunUnsafe {
+    //LIST
+    unsafe fn lindex(&self, key: String, index: usize);
+    unsafe fn brpoplpush(&self, args: Vec<&str>);
+    unsafe fn brpop(&self, args: Vec<&str>);
+    unsafe fn blpop(&self, args: Vec<&str>);
+    unsafe fn lpush(&self, key: String, values: Vec<&str>);
+
     //HASH
     unsafe fn hscan(&self, keys: Vec<&str>);
     unsafe fn hvals(&self, key: String);
@@ -825,6 +935,76 @@ pub trait RunUnsafe {
 }
 
 impl RunUnsafe for Cvt {
+    #[allow(dead_code)]
+    unsafe fn lindex(&self, key: String, index: usize) {
+        let c = &mut *self.clients; // redis client
+        match c.lindex::<String>(&key, index.try_into().unwrap()) {
+            Ok(value) => {
+                cvt_cmd::list::ListCMD{}.lindex(key, index, value)
+            },
+            Err(error) => println!("LINDEX error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn brpoplpush(&self, args: Vec<&str>) {
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<String>("BRPOPLPUSH", args.clone()) {
+            Ok(v) => {
+                let mut map_data = HashMap::new();
+                map_data.insert(args[0].to_string(), v);
+                cvt_cmd::list::ListCMD {}.blpop(map_data)
+            }
+            Err(error) => println!("BRPOPLPUSH error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn brpop(&self, args: Vec<&str>) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<HashMap<String, String>>("BRPOP", args) {
+            Ok(v) => cvt_cmd::list::ListCMD {}.blpop(v),
+            Err(error) => println!("BRPOP error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn blpop(&self, args: Vec<&str>) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        match c.run_command::<HashMap<String, String>>("BLPOP", args) {
+            Ok(v) => cvt_cmd::list::ListCMD {}.blpop(v),
+            Err(error) => {
+                println!("BLPOP error {}", error)
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn lpush(&self, key: String, values: Vec<&str>) {
+        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        for x in 0..values.len() {
+            match c.lpush(&key, &*values[x]) {
+                Ok(_) => {
+                    println!(
+                        "{}) lpush key {} value {} success!",
+                        &x,
+                        key.clone(),
+                        &values[x]
+                    )
+                }
+                Err(error) => {
+                    println!(
+                        "{}) lpush key {} value {} failed! error {}",
+                        &x,
+                        key.clone(),
+                        &values[x],
+                        error.to_string()
+                    )
+                }
+            }
+        }
+    }
+
     #[allow(dead_code)]
     unsafe fn hscan(&self, keys: Vec<&str>) {
         let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
