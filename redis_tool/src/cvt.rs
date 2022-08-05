@@ -10,7 +10,7 @@ use crate::{
     },
 };
 
-use std::{collections::HashMap, error::Error, num};
+use std::{collections::HashMap};
 
 /**
  * @explain order
@@ -411,7 +411,7 @@ impl Cvt {
                     return;
                 }
                 unsafe {
-                    self.set(usecmds[1].to_string(), usecmds[2].to_string());
+                    self.setnx(usecmds[1].to_string(), usecmds[2].to_string());
                 }
             }
 
@@ -423,8 +423,8 @@ impl Cvt {
                 }
                 let offset = usize::from_str_radix(usecmds[2].as_str(), 10);
                 match offset {
-                    Ok(t) => unsafe {
-                        self.setex(usecmds[1].to_string(), t, usecmds[3].to_string());
+                    Ok(_) => unsafe {
+                        self.setrange(usecmds[1].to_string(), usecmds[2].to_string(), usecmds[3].to_string());
                     },
                     Err(error) => {
                         println!("offset must numeric {}{}", constrs::CMD_IS_FAIL, error);
