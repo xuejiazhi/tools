@@ -94,13 +94,15 @@ fn test_capture() {
 
 #[test]
 fn test_str2f64() {
-    let s="12esss3.456";
-    match s.parse::<f64>() {
-        Ok(v) => {
-            println!("ok")
-        },
-        Err(e) => {
-            println!("error=>{}",e.to_string())
-        },
-    }
+    // let s="12esss3.456";
+    // match s.parse::<f64>() {
+    //     Ok(v) => {
+    //         println!("ok")
+    //     },
+    //     Err(e) => {
+    //         println!("error=>{}",e.to_string())
+    //     },
+    // }
+    let mut s = -2;
+
 }

@@ -4,12 +4,13 @@ use crate::{
     constrs::constrs,
     help::route::Route,
     util::{
+        function,
         strexpres::{Express, StrExpress},
         tagregs::{Regs, TagRegs},
     },
 };
 
-use std::collections::HashMap;
+use std::{collections::HashMap, error::Error, num};
 
 /**
  * @explain order
@@ -767,7 +768,7 @@ impl Cvt {
             //[LPUSH]
             "lpush" => {
                 if cmd_length < 3 {
-                    println!("LPUSH {} 4", constrs::CLI_LENGTH_TAHN);
+                    println!("LPUSH {} 3", constrs::CLI_LENGTH_TAHN);
                     return;
                 }
 
@@ -863,6 +864,174 @@ impl Cvt {
                 }
             }
 
+            //[LINSERT]
+            "linsert" => {
+                if cmd_length != 5 {
+                    println!("LINSERT {} 5", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                if usecmds[2].to_string() == "after" || usecmds[2].to_string() == "before" {
+                    let mut vec: Vec<&str> = Vec::new();
+                    for i in 1..usecmds.len() {
+                        vec.push(&usecmds[i])
+                    }
+                    unsafe { self.linsert(vec) }
+                } else {
+                    println!("LINSERT before|after is wrong!{}", usecmds[2].to_string());
+                    return;
+                }
+            }
+
+            //[LLEN]
+            "llen" => {
+                if cmd_length != 2 {
+                    println!("LLEN {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe { self.llen(usecmds[1].to_string()) }
+            }
+
+            //[LPOP]
+            "lpop" => {
+                if cmd_length != 2 {
+                    println!("LPOP {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe { self.lpop(usecmds[1].to_string()) }
+            }
+
+            //[LPUSHX]
+            "lpushx" => {
+                if cmd_length < 3 {
+                    println!("LPUSHX {} 3", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+
+                let mut vec: Vec<&str> = Vec::new();
+                for i in 2..usecmds.len() {
+                    vec.push(&usecmds[i])
+                }
+                unsafe { self.lpushx(usecmds[1].to_string(), vec) }
+            }
+
+            //[LRANGE]
+            "lrange" => {
+                if cmd_length != 4 {
+                    println!("LRANGE {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                match isize::from_str_radix(usecmds[2].as_str(), 10) {
+                    Ok(s) => match isize::from_str_radix(usecmds[3].as_str(), 10) {
+                        Ok(e) => unsafe {
+                            self.lrange(usecmds[1].to_string(), s as i32, e as i32);
+                        },
+                        Err(error) => println!("LRANGE end must number,{}", error),
+                    },
+                    Err(error) => println!("LRANGE start must number,{}", error),
+                }
+            }
+
+            //[LREM]
+            "lrem" => {
+                if cmd_length != 4 {
+                    println!("LREM {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                match isize::from_str_radix(usecmds[2].as_str(), 10) {
+                    Ok(c) => unsafe {
+                        self.lrem(usecmds[1].to_string(), c, usecmds[3].to_string());
+                    },
+                    Err(error) => println!("LREM count must number,{}", error),
+                }
+            }
+
+            //[LSET]
+            "lset" => {
+                if cmd_length != 4 {
+                    println!("LSET {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                match isize::from_str_radix(usecmds[2].as_str(), 10) {
+                    Ok(c) => unsafe {
+                        self.lset(usecmds[1].to_string(), c, usecmds[3].to_string());
+                    },
+                    Err(error) => println!("LSET index must number,{}", error),
+                }
+            }
+
+            //[LTRIM]
+            "ltrim" => {
+                if cmd_length != 4 {
+                    println!("LTRIM {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                match isize::from_str_radix(usecmds[2].as_str(), 10) {
+                    Ok(s) => match isize::from_str_radix(usecmds[3].as_str(), 10) {
+                        Ok(e) => unsafe {
+                            self.ltrim(usecmds[1].to_string(), s, e);
+                        },
+                        Err(error) => println!("LTRIM end must number,{}", error),
+                    },
+                    Err(error) => println!("LRANGE start must number,{}", error),
+                }
+            }
+
+            //[RPOP]
+            "rpop" => {
+                if cmd_length != 2 {
+                    println!("RPOP {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe { self.rpop(usecmds[1].to_string()) }
+            }
+
+            //[RPOPLPUSH]
+            "rpoplpush" => {
+                if cmd_length != 3 {
+                    println!("RPOPLPUSH {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                //构建args
+                let mut args: Vec<&str> = Vec::new();
+                for i in 1..usecmds.len() {
+                    args.push(&usecmds[i])
+                }
+                unsafe { self.rpoplpush(args) }
+            }
+
+            //[RPUSH]
+            "rpush" => {
+                if cmd_length < 3 {
+                    println!("RPUSH {} 3", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+
+                let mut vec: Vec<&str> = Vec::new();
+                for i in 2..usecmds.len() {
+                    vec.push(&usecmds[i])
+                }
+
+                unsafe { self.rpush(usecmds[1].to_string(), vec) }
+            }
+
+            //[RPUSHX]
+            "rpushx" => {
+                if cmd_length < 3 {
+                    println!("RPUSHX {} 4", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+
+                let mut vec: Vec<&str> = Vec::new();
+                for i in 2..usecmds.len() {
+                    vec.push(&usecmds[i])
+                }
+                unsafe { self.rpushx(usecmds[1].to_string(), vec) }
+            }
+
             _ => {
                 println!("{}", constrs::CMD_IS_FAIL);
             }
@@ -872,6 +1041,18 @@ impl Cvt {
 
 pub trait RunUnsafe {
     //LIST
+    unsafe fn rpushx(&self, key: String, values: Vec<&str>);
+    unsafe fn rpush(&self, key: String, values: Vec<&str>);
+    unsafe fn rpoplpush(&self, args: Vec<&str>);
+    unsafe fn rpop(&self, key: String);
+    unsafe fn ltrim(&self, key: String, start: isize, stop: isize);
+    unsafe fn lset(&self, key: String, index: isize, value: String);
+    unsafe fn lrem(&self, key: String, count: isize, value: String);
+    unsafe fn lrange(&self, key: String, start: i32, stop: i32);
+    unsafe fn lpushx(&self, key: String, values: Vec<&str>);
+    unsafe fn lpop(&self, key: String);
+    unsafe fn llen(&self, key: String);
+    unsafe fn linsert(&self, args: Vec<&str>);
     unsafe fn lindex(&self, key: String, index: usize);
     unsafe fn brpoplpush(&self, args: Vec<&str>);
     unsafe fn brpop(&self, args: Vec<&str>);
@@ -936,12 +1117,199 @@ pub trait RunUnsafe {
 
 impl RunUnsafe for Cvt {
     #[allow(dead_code)]
+    unsafe fn rpushx(&self, key: String, values: Vec<&str>) {
+        for x in 0..values.len() {
+            let c = &mut *self.clients; // redis client
+            match c.lpushx(&key, &*values[x]) {
+                Ok(_) => {
+                    println!(
+                        "{}) lpushx key {} value {} success!",
+                        &x,
+                        key.clone(),
+                        &values[x]
+                    )
+                }
+                Err(error) => {
+                    println!(
+                        "{}) lpushx key {} value {} failed! error {}",
+                        &x,
+                        key.clone(),
+                        &values[x],
+                        error.to_string()
+                    )
+                }
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn rpush(&self, key: String, values: Vec<&str>) {
+        let c = &mut *self.clients; // redis client
+        for x in 0..values.len() {
+            match c.lpush(&key, &*values[x]) {
+                Ok(_) => {
+                    println!(
+                        "{}) rpush key {} value {} success!",
+                        &x,
+                        key.clone(),
+                        &values[x]
+                    )
+                }
+                Err(error) => {
+                    println!(
+                        "{}) rpush key {} value {} failed! error {}",
+                        &x,
+                        key.clone(),
+                        &values[x],
+                        error.to_string()
+                    )
+                }
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn rpoplpush(&self, args: Vec<&str>) {
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<String>("RPOPLPUSH", args) {
+            Ok(v) => {
+                println!("RPOPLPUSH success value {}", v);
+            }
+            Err(error) => println!("RPOPLPUSH error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn rpop(&self, key: String) {
+        let c = &mut *self.clients; // redis client
+        match c.rpop::<String>(&key) {
+            Ok(v) => {
+                let mut map_data = HashMap::new();
+                map_data.insert(key, v);
+                cvt_cmd::list::ListCMD {}.blpop(map_data)
+            }
+            Err(error) => println!("RPOP error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn ltrim(&self, key: String, start: isize, stop: isize) {
+        let c = &mut *self.clients; // redis client
+        match c.ltrim(&key, start, stop) {
+            Ok(_) => {
+                println!("LTRIM success");
+            }
+            Err(error) => println!("LTRIM wrong error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn lset(&self, key: String, index: isize, value: String) {
+        let c = &mut *self.clients; // redis client
+        match c.lset(&key, index, &*value) {
+            Ok(_) => {
+                println!("LSET success");
+            }
+            Err(error) => println!("LSET wrong error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn lrem(&self, key: String, count: isize, value: String) {
+        let c = &mut *self.clients; // redis client
+        match c.lrem(&key, count, &*value) {
+            Ok(_) => {
+                let mut header: Vec<String> = Vec::with_capacity(2);
+                header.push("key".to_string());
+                header.push("lrem_count".to_string());
+                let mut data = HashMap::new();
+                data.insert(key, count.abs().to_string());
+                cvt_cmd::list::ListCMD {}.l_pub_k_v(header, data);
+            }
+            Err(error) => println!("LREM error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn lrange(&self, key: String, start: i32, stop: i32) {
+        let c = &mut *self.clients; // redis client
+        match c.lrange(
+            &key,
+            function::i32_2_isize(start),
+            function::i32_2_isize(stop),
+        ) {
+            Ok(data) => {
+                cvt_cmd::list::ListCMD {}.lrange(data);
+            }
+            Err(error) => println!("LRANGE error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn lpushx(&self, key: String, values: Vec<&str>) {
+        for x in 0..values.len() {
+            let c = &mut *self.clients; // redis client
+            match c.lpushx(&key, &*values[x]) {
+                Ok(_) => {
+                    println!(
+                        "{}) lpushx key {} value {} success!",
+                        &x,
+                        key.clone(),
+                        &values[x]
+                    )
+                }
+                Err(error) => {
+                    println!(
+                        "{}) lpushx key {} value {} failed! error {}",
+                        &x,
+                        key.clone(),
+                        &values[x],
+                        error.to_string()
+                    )
+                }
+            }
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn lpop(&self, key: String) {
+        let c = &mut *self.clients; // redis client
+        match c.lpop::<String>(&key) {
+            Ok(v) => {
+                let mut map_data = HashMap::new();
+                map_data.insert(key, v);
+                cvt_cmd::list::ListCMD {}.blpop(map_data)
+            }
+            Err(error) => println!("LPOP error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn llen(&self, key: String) {
+        let c = &mut *self.clients; // redis client
+        match c.llen(&key) {
+            Ok(v) => cvt_cmd::list::ListCMD {}.llen(key, v),
+            Err(error) => println!("LLEN error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn linsert(&self, args: Vec<&str>) {
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<i32>("LINSERT", args.clone()) {
+            Ok(v) => {
+                println!("LINSERT success");
+                cvt_cmd::list::ListCMD {}.llen(args[0].to_string(), v);
+            }
+            Err(error) => println!("LINSERT error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
     unsafe fn lindex(&self, key: String, index: usize) {
         let c = &mut *self.clients; // redis client
         match c.lindex::<String>(&key, index.try_into().unwrap()) {
-            Ok(value) => {
-                cvt_cmd::list::ListCMD{}.lindex(key, index, value)
-            },
+            Ok(value) => cvt_cmd::list::ListCMD {}.lindex(key, index, value),
             Err(error) => println!("LINDEX error {}", error),
         }
     }
@@ -961,7 +1329,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn brpop(&self, args: Vec<&str>) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<HashMap<String, String>>("BRPOP", args) {
             Ok(v) => cvt_cmd::list::ListCMD {}.blpop(v),
             Err(error) => println!("BRPOP error {}", error),
@@ -970,7 +1338,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn blpop(&self, args: Vec<&str>) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<HashMap<String, String>>("BLPOP", args) {
             Ok(v) => cvt_cmd::list::ListCMD {}.blpop(v),
             Err(error) => {
@@ -981,7 +1349,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn lpush(&self, key: String, values: Vec<&str>) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         for x in 0..values.len() {
             match c.lpush(&key, &*values[x]) {
                 Ok(_) => {
@@ -1007,7 +1375,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hscan(&self, keys: Vec<&str>) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<Vec<String>>("HSCAN", keys.clone()) {
             Ok(v) => {
                 println!("hscan->{:?}", v);
@@ -1020,7 +1388,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hvals(&self, key: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.hvals(&key) {
             Ok(v) => {
                 cvt_cmd::hash::HashCMD {}.hkeys(v);
@@ -1031,7 +1399,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hsetnx(&self, key: String, field: String, value: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.hsetnx(&key, &field, &*value) {
             Ok(_) => {
                 println!("hsetnx field {} success", field);
@@ -1043,7 +1411,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hmset(&self, keys: Vec<&str>) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<String>("HMSET", keys.clone()) {
             Ok(v) => {
                 println!("hmset {}", v)
@@ -1056,7 +1424,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hmget(&self, keys: Vec<&str>) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<Vec<String>>("HMGET", keys.clone()) {
             Ok(v) => {
                 let mut map_data = HashMap::new();
@@ -1071,7 +1439,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hlen(&self, key: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<i32>("HLEN", vec![&key]) {
             Ok(v) => {
                 println!("hlen hash key ({}) field length is {} !", key, v)
@@ -1082,7 +1450,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hkeys(&self, key: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.hkeys(&key) {
             Ok(v) => {
                 cvt_cmd::hash::HashCMD {}.hkeys(v);
@@ -1093,7 +1461,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hincrbyfloat(&self, key: String, field: String, value: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<f64>("HINCRBYFLOAT", vec![&key, &field, &value]) {
             Ok(_) => {
                 println!("hincrbyfloat key {} field {} success!", key, field);
@@ -1105,7 +1473,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hincrby(&self, key: String, field: String, incr_number: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<i32>("HINCRBY", vec![&key, &field, &incr_number]) {
             Ok(_) => {
                 println!("hincrby key {} field {} success!", key, field);
@@ -1117,7 +1485,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hgetall(&self, key: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.hgetall(&key) {
             Ok(map) => {
                 cvt_cmd::hash::HashCMD {}.hgetall(map);
@@ -1128,7 +1496,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hexists(&self, key: String, field: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.hexists(&key, &field) {
             Ok(v) => {
                 if v {
@@ -1159,7 +1527,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hdel(&self, key: String, field: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.hdel(&key, &field) {
             Ok(_) => {
                 println!("hdel hash key {} field {} success (^v^)", key, field);
@@ -1172,7 +1540,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hget(&self, key: String, field: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.hget::<String>(&key, &field) {
             Ok(v) => cvt_cmd::hash::HashCMD {}.hget(key, field, v),
             Err(e) => {
@@ -1183,7 +1551,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn hset(&self, key: String, field: String, value: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.hset(&key, &field, &*value) {
             Ok(_) => {
                 println!("hset hash key {} field {} success (^v^)", key, field);
@@ -1196,7 +1564,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn append(&self, key: String, value: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.append(&key, &value) {
             Ok(_) => {
                 println!("append {} success (^v^)", key.clone());
@@ -1210,7 +1578,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn decrby(&self, key: String, value: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<i64>("DECRBY", vec![&key, &value]) {
             Ok(v) => {
                 println!("(integer) {}", v)
@@ -1223,7 +1591,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn decr(&self, key: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<i64>("DECR", vec![&key]) {
             Ok(v) => {
                 println!("(integer) {}", v)
@@ -1236,7 +1604,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn incrbyfloat(&self, key: String, value: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.incrbyfloat(&key, &*value) {
             Ok(v) => {
                 println!("(float64) {}", v)
@@ -1249,7 +1617,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn incrby(&self, key: String, value: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.incrby(&key, &*value) {
             Ok(v) => {
                 println!("(integer) {}", v)
@@ -1262,7 +1630,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn incr(&self, key: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.incr(&key) {
             Ok(v) => {
                 println!("(integer) {}", v)
@@ -1275,7 +1643,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn psetex(&self, key: String, timeout: usize, value: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command_empty_response(
             "PSETEX",
             vec![&key, &*timeout.to_string(), &value.to_string()],
@@ -1290,7 +1658,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn msetnx(&self, keys: Vec<&str>) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<i32>("MSETNX", keys.clone()) {
             Ok(v) => {
                 println!("{}", v)
@@ -1303,7 +1671,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn mset(&self, keys: Vec<&str>) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<String>("MSET", keys.clone()) {
             Ok(v) => {
                 println!("{}", v)
@@ -1316,7 +1684,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn strlen(&self, key: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.strlen(&key) {
             Ok(v) => {
                 cvt_cmd::string::StringCMD {}.strlen(key, v);
@@ -1329,7 +1697,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn setrange(&self, key: String, offset: String, value: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<i32>("SETRANGE", vec![&key, &offset, &value]) {
             Ok(i) => {
                 println!("setrange {} success, {}", key.clone(), i);
@@ -1341,7 +1709,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn setnx(&self, key: String, value: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.setnx(&key, value.as_str()) {
             Ok(_) => {
                 cvt_cmd::string::StringCMD {}.set(
@@ -1362,7 +1730,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn setex(&self, key: String, timeout: usize, value: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.setex(&key, value.as_str(), timeout) {
             Err(error) => println!("Unable to setex value in Redis: {}", error),
             _ => {
@@ -1374,7 +1742,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn mget(&self, keys: Vec<&str>) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<Vec<String>>("MGET", keys.clone()) {
             Ok(v) => {
                 let mut map_data = HashMap::new();
@@ -1389,7 +1757,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn setbit(&self, key: String, offset: String, value: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<i32>("SETBIT", vec![&key, &offset, &value]) {
             Ok(v) => {
                 println!("setbit (integer) {}", v);
@@ -1402,7 +1770,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn getbit(&self, key: String, offset: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<i32>("GETBIT", vec![&key, &offset]) {
             Ok(v) => {
                 println!("getbit (integer) {}", v);
@@ -1415,7 +1783,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn getrange(&self, key: String, start: String, end: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<String>("GETRANGE", vec![&key, &start, &end]) {
             Ok(v) => {
                 println!("{}", v)
@@ -1428,7 +1796,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn scan(&self, cursor: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<HashMap<String, Vec<String>>>("SCAN", vec![&cursor]) {
             Ok(val) => {
                 for (k, v) in val {
@@ -1444,7 +1812,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn renamenx(&self, oldkey: String, newkey: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.renamenx(&oldkey, &newkey) {
             Ok(_) => {
                 println!(
@@ -1462,7 +1830,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn rename(&self, oldkey: String, newkey: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.rename(&oldkey, &newkey) {
             Ok(_) => {
                 println!(
@@ -1480,7 +1848,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn randomkey(&self) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<String>("RANDOMKEY", vec![]) {
             Ok(v) => {
                 let param_type = self.get_type(v.clone());
@@ -1495,7 +1863,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn persist(&self, key: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.persist(&key) {
             Ok(_) => {
                 println!("Persist Key {} Success", key);
@@ -1509,7 +1877,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn movedb(&self, key: String, db: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command_empty_response("MOVE", vec![&key, &db]) {
             Ok(_) => {
                 println!("Move Key {} success!", key);
@@ -1522,7 +1890,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn pexpireat(&self, key: String, miltimestamp: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command_empty_response("PEXPIREAT", vec![&key, &miltimestamp]) {
             Ok(_) => {
                 println!("PExpireat success");
@@ -1536,7 +1904,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn expireat(&self, key: String, timestamp: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command_empty_response("EXPIREAT", vec![&key, &timestamp]) {
             Ok(_) => {
                 println!("Expireat success");
@@ -1550,7 +1918,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn pexpire(&self, key: String, millseconds: usize) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.pexpire(&key, millseconds) {
             Ok(_) => {
                 println!("PExpire success");
@@ -1564,7 +1932,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn expire(&self, key: String, seconds: usize) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.expire(&key, seconds) {
             Ok(_) => {
                 println!("Expire success");
@@ -1578,7 +1946,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn dump(&self, key: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<Vec<u8>>("DUMP", vec![&key]) {
             Ok(val) => {
                 let str = String::from_utf8_lossy(&val);
@@ -1590,7 +1958,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn keys(&self, key: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.keys(&key) {
             Ok(strs) => {
                 cvt_cmd::string::StringCMD {}.keys(strs);
@@ -1603,7 +1971,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn set(&self, key: String, value: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.set(key.as_str(), value.as_str()) {
             Ok(_) => {
                 cvt_cmd::string::StringCMD {}.set(
@@ -1624,7 +1992,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn del(&self, key: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.del(key.as_str()) {
             Ok(_) => {
                 cvt_cmd::string::StringCMD {}.opt(
@@ -1647,7 +2015,7 @@ impl RunUnsafe for Cvt {
     unsafe fn get_type(&self, key: String) -> String {
         //set ttl error
         let mut type_val: String = "none".to_string();
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<String>("TYPE", vec![&key]) {
             Ok(val) => {
                 type_val = val.to_string();
@@ -1659,7 +2027,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn key_is_exists(&self, key: String) -> bool {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.exists(&key) {
             Ok(result) => result,
             Err(_) => false,
@@ -1668,7 +2036,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn ttl_key(&self, key: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<i32>("TTL", vec![&key]) {
             Ok(val) => {
                 println!("{} <seconds>", val);
@@ -1681,7 +2049,7 @@ impl RunUnsafe for Cvt {
 
     #[allow(dead_code)]
     unsafe fn pttl_key(&self, key: String) {
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<i32>("PTTL", vec![&key]) {
             Ok(val) => {
                 println!("{} <milliseconds>", val);
@@ -1695,7 +2063,7 @@ impl RunUnsafe for Cvt {
     #[allow(dead_code)]
     unsafe fn get(&self, key: String) {
         let (ttl, err) = self.get_ttl(key.to_string());
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         let str_val = c.get::<String>(&key);
         match str_val {
             Ok(strs) => {
@@ -1712,7 +2080,7 @@ impl RunUnsafe for Cvt {
         //set ttl error
         let mut ttl_val: String = "nil".to_string();
         let mut err_val: String = "nil".to_string();
-        let c: &mut simple_redis::client::Client = &mut *self.clients; // redis client
+        let c = &mut *self.clients; // redis client
         match c.run_command::<i32>("TTL", vec![&key]) {
             Ok(val) => {
                 ttl_val = val.to_string();
