@@ -35,9 +35,11 @@ redis_tool 是一个模拟redis-cli的工具,对redis查询出来的结果进行
 127.0.0.1:6379~[db0]#>
 ```
 *Keys* 
+
 ---
 title: Type 命令用于返回 key 所储存的值的类型
 ---
+
 ```bash
 语法
 redis Renamenx 命令基本语法如下：
