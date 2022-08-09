@@ -4,6 +4,7 @@ use crate::{
 };
 
 use super::{
+    hash::{HashHelp, Help as HsHelp},
     key::{Help as KHelp, KeyHelp},
     string::{Help as StrHelp, StringHelp},
 };
@@ -59,14 +60,29 @@ impl Route {
                         "setnx" => StringHelp {}.help_setnx(),
                         "setrange" => StringHelp {}.help_setrange(),
                         "strlen" => StringHelp {}.help_strlen(),
-                        "mset" => StringHelp{}.help_mset(),
-                        "msetnx" => StringHelp{}.help_msetnx(),
-                        "psetex" => StringHelp{}.help_psetex(),
-                        "incr" => StringHelp{}.help_incr(),
-                        "incrby" =>StringHelp{}.help_incrby(),
-                        "decr" => StringHelp{}.help_decr(),
-                        "decrby" => StringHelp{}.help_decrby(),
-                        "append" => StringHelp{}.help_append(),
+                        "mset" => StringHelp {}.help_mset(),
+                        "msetnx" => StringHelp {}.help_msetnx(),
+                        "psetex" => StringHelp {}.help_psetex(),
+                        "incr" => StringHelp {}.help_incr(),
+                        "incrby" => StringHelp {}.help_incrby(),
+                        "decr" => StringHelp {}.help_decr(),
+                        "decrby" => StringHelp {}.help_decrby(),
+                        "append" => StringHelp {}.help_append(),
+                        //help hash route
+                        "hdel" => HashHelp {}.help_hdel(),
+                        "hexists" => HashHelp {}.help_hexists(),
+                        "hget" => HashHelp {}.help_hget(),
+                        "hgetall" => HashHelp {}.help_hgetall(),
+                        "hincrby" => HashHelp {}.help_hincrby(),
+                        "hincrbyfloat" => HashHelp {}.help_hincrbyfloat(),
+                        "hkeys" => HashHelp {}.help_hkeys(),
+                        "hlen" => HashHelp {}.help_hlen(),
+                        "hmget" => HashHelp {}.help_hmget(),
+                        "hmset" => HashHelp {}.help_hmset(),
+                        "hset" => HashHelp {}.help_hset(),
+                        "hsetnx" => HashHelp {}.help_hsetnx(),
+                        "hvals" => HashHelp {}.help_hvals(),
+                        "hscan" => HashHelp{}.help_hscan(),
                         _ => {}
                     }
                 }
@@ -123,6 +139,22 @@ Incrby            该命令将 key 中储存的数字加上指定的增量值
 Decr              该命令将 key 中储存的数字值减一
 Decrby            该命令将 key 所储存的值减去指定的减量值
 Append            该命令用于为指定的 key 追加值
+
+【Hash】
+Hdel              该命令用于删除哈希表 key 中的一个或多个指定字段，不存在的字段将被忽略
+Hexists           该命令用于查看哈希表的指定字段是否存在
+Hget              该命令用于返回哈希表中指定字段的值
+Hgetall           该命令用于返回哈希表中，所有的字段和值
+Hincrby           该命令用于为哈希表中的字段值加上指定增量值
+Hincrbyfloat      该命令用于为哈希表中的字段值加上指定浮点数增量值
+Hkeys             该命令用于获取哈希表中的所有域（field）
+Hlen              该命令用于获取哈希表中字段的数量
+Hmget             该命令用于返回哈希表中，一个或多个给定字段的值
+Hmset             该命令用于同时将多个 field-value (字段-值)对设置到哈希表中
+Hset              该命令用于为哈希表中的字段赋值
+Hsetnx            该命令用于为哈希表中不存在的的字段赋值
+Hvals             该命令返回哈希表所有的值
+HSCAN             该命令用于迭代哈希表中的键值对[无用]
         ")
     }
 }
