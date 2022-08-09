@@ -72,25 +72,22 @@ fn test_capture() {
             } else {
                 cv = true;
             }
-            println!("cv->{}",cv);
+            println!("cv->{}", cv);
         }
 
-        if cv&&&chr.to_string()==" "{
-            cap+=&"\\u7a7a\\u683c".to_string()
-        }else {
+        if cv && &chr.to_string() == " " {
+            cap += &"\\u7a7a\\u683c".to_string()
+        } else {
             cap += &chr.to_string();
         }
-        
-        println!("txt->{}",cap);
+
+        println!("txt->{}", cap);
     }
     fn add_test(mut x: i32) -> i32 {
         x = x + 1;
         x
     }
 }
-
-
-
 
 #[test]
 fn test_str2f64() {
@@ -104,5 +101,17 @@ fn test_str2f64() {
     //     },
     // }
     let mut s = -2;
+}
+
+#[test]
+fn test_capture_vec() {
+    let mut a1:Vec<String> = Vec::with_capacity(5);
+    a1.push("1".to_string());
+    a1.push("2".to_string());
+    a1.push("3".to_string());
+    a1.push("4".to_string());
+    a1.push("5".to_string());
+    println!("v->{:?}",&a1);
+    let v = Vec::from_iter(a1.iter().map(String::as_str));
 
 }

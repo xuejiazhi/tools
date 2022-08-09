@@ -1,6 +1,6 @@
 use crate::{
     cmd as cvt_cmd,
-    cmd::{hash::Cmd as HashCmd, list::Cmd as ListCmd, string::Cmd},
+    cmd::{hash::Cmd as HashCmd, list::Cmd as ListCmd, set::Cmd as SetCmd, string::Cmd},
     constrs::constrs,
     help::route::Route,
     util::{
@@ -10,7 +10,7 @@ use crate::{
     },
 };
 
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 /**
  * @explain order
@@ -31,7 +31,7 @@ impl Cvt {
 
         let cmd_length = usecmds.len();
         if cmd_length == 0 {
-            println!("{}", constrs::CMD_IS_NIL);
+            // println!("{}", constrs::CMD_IS_NIL);
             return;
         }
 
@@ -424,7 +424,11 @@ impl Cvt {
                 let offset = usize::from_str_radix(usecmds[2].as_str(), 10);
                 match offset {
                     Ok(_) => unsafe {
-                        self.setrange(usecmds[1].to_string(), usecmds[2].to_string(), usecmds[3].to_string());
+                        self.setrange(
+                            usecmds[1].to_string(),
+                            usecmds[2].to_string(),
+                            usecmds[3].to_string(),
+                        );
                     },
                     Err(error) => {
                         println!("offset must numeric {}{}", constrs::CMD_IS_FAIL, error);
@@ -1021,7 +1025,7 @@ impl Cvt {
             //[RPUSHX]
             "rpushx" => {
                 if cmd_length < 3 {
-                    println!("RPUSHX {} 4", constrs::CLI_LENGTH_TAHN);
+                    println!("RPUSHX {} 3", constrs::CLI_LENGTH_TAHN);
                     return;
                 }
 
@@ -1031,15 +1035,226 @@ impl Cvt {
                 }
                 unsafe { self.rpushx(usecmds[1].to_string(), vec) }
             }
+            //Redis 集合的实现
+            //Redis 的 Set 是 String 类型的无序集合。集合成员是唯一的，这就意味着集合中不能出现重复的数据。
+            // 集合对象的编码可以是 intset 或者 hashtable。
+            // Redis 中集合是通过哈希表实现的，所以添加，删除，查找的复杂度都是 O(1)。
+            //集合中最大的成员数为 232 - 1 (4294967295, 每个集合可存储40多亿个成员)
+            "sadd" => {
+                if cmd_length != 3 {
+                    println!("SADD {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe { self.sadd(usecmds[1].to_string(), usecmds[2].to_string()) }
+            }
+
+            //[Scard]
+            "scard" => {
+                if cmd_length != 2 {
+                    println!("SCARD {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe { self.scard(usecmds[1].to_string()) }
+            }
+
+            //[SDIFF]
+            "sdiff" => {
+                if cmd_length < 3 {
+                    println!("SDIFF {} 3", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+                let args = function::capture_vec_string(usecmds.clone(), 1, usecmds.len());
+                unsafe { self.sdiff(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[SDIFFSTORE]
+            "sdiffstore" => {
+                if cmd_length != 4 {
+                    println!("SDIFFSTORE {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                let args = function::capture_vec_string(usecmds.clone(), 1, usecmds.len());
+                unsafe { self.sdiffstore(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[SINTER]
+            "sinter" => {
+                if cmd_length < 3 {
+                    println!("SINTER {} 3", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+                let args = function::capture_vec_string(usecmds.clone(), 1, usecmds.len());
+                unsafe { self.sinter(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[SINTERSTORE]
+            "sinterstore" => {
+                if cmd_length < 4 {
+                    println!("SINTERSTORE {} 4", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+                let args = function::capture_vec_string(usecmds.clone(), 1, usecmds.len());
+                unsafe { self.sinterstore(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[SISMEMBER]
+            "sismember" => {
+                if cmd_length != 3 {
+                    println!("SISMEMBER {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe { self.sismember(usecmds[1].to_string(), usecmds[2].to_string()) }
+            }
+
+            //[SMEMBERS]
+            "smembers" => {
+                if cmd_length != 2 {
+                    println!("SMEMBERS {} 2", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe { self.smembers(usecmds[1].to_string()) }
+            }
+
+            //[SMOVE]
+            "smove" => {
+                if cmd_length != 4 {
+                    println!("SMOVE {} 4", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+                unsafe {
+                    self.smove(
+                        usecmds[1].to_string(),
+                        usecmds[2].to_string(),
+                        usecmds[3].to_string(),
+                    );
+                }
+            }
+
+            //[SPOP]
+            "spop" => {
+                if cmd_length != 3 {
+                    println!("SPOP {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                    return;
+                }
+
+                match isize::from_str_radix(usecmds[2].as_str(), 10) {
+                    Ok(c) => unsafe { self.spop(usecmds[1].to_string(), c) },
+                    Err(error) => println!("SPOP count must number,{}", error),
+                }
+            }
+
+            //[SRANDMEMBER]
+            "srandmember" => {
+                if cmd_length < 2 {
+                    println!("SRANDMEMBER {} 2", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+
+                let mut cnt: isize = 1;
+                if cmd_length > 2 {
+                    match isize::from_str_radix(usecmds[2].as_str(), 10) {
+                        Ok(c) => {
+                            cnt = c.abs();
+                        }
+                        Err(error) => println!("SRANDMEMBER count must number,{}", error),
+                    }
+                }
+                unsafe { self.srandmember(usecmds[1].to_string(), cnt) }
+            }
+
+            //[SREM]
+            "srem" => {
+                if cmd_length < 3 {
+                    println!("SREM {} 3", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+                unsafe { self.srem(usecmds[1].to_string(), usecmds[2].to_string()) }
+            }
+
+            //[SUNION]
+            "sunion" => {
+                if cmd_length < 2 {
+                    println!("SUNION {} 2", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+                let args = function::capture_vec_string(usecmds.clone(), 1, usecmds.len());
+                unsafe { self.sunion(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[SUNIONSTORE]
+            "sunionstore" => {
+                if cmd_length < 3 {
+                    println!("SUNIONSTORE {} 3", constrs::CLI_LENGTH_TAHN);
+                    return;
+                }
+                let args = function::capture_vec_string(usecmds.clone(), 1, usecmds.len());
+                unsafe { self.sunion(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[SSCAN]
+            //有问题
+            "sscan" => {
+                println!("cmd_lenght=>{}", cmd_length);
+                if cmd_length != 3 && cmd_length != 5 && cmd_length != 7 {
+                    println!("SSCAN ERR syntax error");
+                    return;
+                }
+
+                match isize::from_str_radix(usecmds[2].as_str(), 10) {
+                    Ok(_) => {
+                        if cmd_length == 7 {
+                            match isize::from_str_radix(usecmds[6].as_str(), 10) {
+                                Ok(_) => {
+                                    let args = function::capture_vec_string(
+                                        usecmds.clone(),
+                                        1,
+                                        usecmds.len(),
+                                    );
+                                    unsafe {
+                                        self.sscan(Vec::from_iter(args.iter().map(String::as_str)))
+                                    }
+                                }
+                                Err(error) => println!("SSCAN count ERR syntax error:{}", error),
+                            }
+                        } else {
+                            //7个CMD以下
+                            let args =
+                                function::capture_vec_string(usecmds.clone(), 1, usecmds.len());
+                            unsafe { self.sscan(Vec::from_iter(args.iter().map(String::as_str))) }
+                        }
+                    }
+                    Err(error) => println!("SSCAN cursor ERR syntax error:{}", error),
+                }
+            }
 
             _ => {
-                println!("{}", constrs::CMD_IS_FAIL);
+                if usecmds.len() == 0 {
+                    println!("")
+                } else {
+                    println!("{}", constrs::CMD_IS_FAIL);
+                }
             }
         }
     }
 }
 
 pub trait RunUnsafe {
+    //SET
+    unsafe fn sscan(&self, args: Vec<&str>);
+    unsafe fn sunionstore(&self, args: Vec<&str>);
+    unsafe fn sunion(&self, args: Vec<&str>);
+    unsafe fn srem(&self, key: String, member: String);
+    unsafe fn srandmember(&self, key: String, cnt: isize);
+    unsafe fn spop(&self, key: String, cnt: isize);
+    unsafe fn smove(&self, source_key: String, destination_key: String, member: String);
+    unsafe fn smembers(&self, key: String);
+    unsafe fn sismember(&self, key: String, member: String);
+    unsafe fn sinterstore(&self, args: Vec<&str>);
+    unsafe fn sinter(&self, args: Vec<&str>);
+    unsafe fn sdiffstore(&self, args: Vec<&str>);
+    unsafe fn sdiff(&self, keys: Vec<&str>);
+    unsafe fn scard(&self, key: String);
+    unsafe fn sadd(&self, key: String, member: String);
     //LIST
     unsafe fn rpushx(&self, key: String, values: Vec<&str>);
     unsafe fn rpush(&self, key: String, values: Vec<&str>);
@@ -1116,6 +1331,247 @@ pub trait RunUnsafe {
 }
 
 impl RunUnsafe for Cvt {
+    #[allow(dead_code)]
+    unsafe fn sscan(&self, args: Vec<&str>) {
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<Vec<String>>("SSCAN", args) {
+            Ok(v) => {
+                let mut header: Vec<String> = Vec::with_capacity(2);
+                header.push("number".to_string());
+                header.push("union-member".to_string());
+                let mut data: Vec<Vec<String>> = Vec::new();
+                for i in 0..v.len() {
+                    let mut son_data = Vec::with_capacity(2);
+                    son_data.push(i.to_string());
+                    son_data.push(v[i].to_string());
+                    data.push(son_data);
+                }
+                cvt_cmd::set::SetCMD {}.l_pub_k_mv(header, data);
+            }
+            Err(error) => println!("SSCAN error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn sunionstore(&self, args: Vec<&str>) {
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<i32>("SUNIONSTORE", args) {
+            Ok(v) => {
+                println!("sunionstore success integer ({})", v);
+            }
+            Err(error) => println!("SUNIONSTORE error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn sunion(&self, args: Vec<&str>) {
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<Vec<String>>("SUNION", args) {
+            Ok(v) => {
+                let mut header: Vec<String> = Vec::with_capacity(1);
+                header.push("union-member".to_string());
+                let mut data: Vec<Vec<String>> = Vec::new();
+                for i in 0..v.len() {
+                    let mut son_data = Vec::with_capacity(1);
+                    son_data.push(v[i].to_string());
+                    data.push(son_data);
+                }
+                cvt_cmd::set::SetCMD {}.l_pub_k_mv(header, data);
+            }
+            Err(error) => println!("SUNION error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn srem(&self, key: String, member: String) {
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<i32>("SREM", vec![&key, &member]) {
+            Ok(v) => {
+                println!("srem success integer ({})", v);
+            }
+            Err(error) => println!("SREM error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn srandmember(&self, key: String, cnt: isize) {
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<Vec<String>>("SRANDMEMBER", vec![&key, &cnt.to_string()]) {
+            Ok(v) => {
+                let mut header: Vec<String> = Vec::with_capacity(1);
+                header.push("rand-member".to_string());
+                let mut data: Vec<Vec<String>> = Vec::new();
+                for i in 0..v.len() {
+                    let mut son_data = Vec::with_capacity(1);
+                    son_data.push(v[i].to_string());
+                    data.push(son_data);
+                }
+                cvt_cmd::set::SetCMD {}.l_pub_k_mv(header, data);
+            }
+            Err(error) => println!("SRANDMEMBER error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn spop(&self, key: String, cnt: isize) {
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<Vec<String>>("SPOP", vec![&key, &cnt.to_string()]) {
+            Ok(v) => {
+                let mut header: Vec<String> = Vec::with_capacity(1);
+                header.push("pop-value".to_string());
+                let mut data: Vec<Vec<String>> = Vec::new();
+                for i in 0..v.len() {
+                    let mut son_data = Vec::with_capacity(1);
+                    son_data.push(v[i].to_string());
+                    data.push(son_data);
+                }
+                cvt_cmd::set::SetCMD {}.l_pub_k_mv(header, data);
+            }
+            Err(error) => println!("SPOP error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn smove(&self, source_key: String, destination_key: String, member: String) {
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<i32>("SMOVE", vec![&source_key, &destination_key, &member]) {
+            Ok(v) => {
+                println!("smove success integer ({})", v);
+            }
+            Err(error) => println!("SMOVE error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn smembers(&self, key: String) {
+        let c = &mut *self.clients; // redis client
+        match c.smembers(&key) {
+            Ok(v) => {
+                let mut header: Vec<String> = Vec::with_capacity(1);
+                header.push("value".to_string());
+                let mut data: Vec<Vec<String>> = Vec::new();
+                for i in 0..v.len() {
+                    let mut son_data = Vec::with_capacity(1);
+                    son_data.push(v[i].to_string());
+                    data.push(son_data);
+                }
+                cvt_cmd::set::SetCMD {}.l_pub_k_mv(header, data);
+            }
+            Err(error) => println!("SMEMBERS error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn sismember(&self, key: String, member: String) {
+        let c = &mut *self.clients; // redis client
+        match c.sismember(&key, &member) {
+            Ok(v) => {
+                if v {
+                    println!("exists!")
+                } else {
+                    println!("none!")
+                }
+            }
+            Err(error) => println!("SISMEMBER error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn sinterstore(&self, args: Vec<&str>) {
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<i32>("SINTERSTORE", args.clone()) {
+            Ok(v) => {
+                println!("sinterstore success key {} ({})", args[0].to_string(), v)
+            }
+            Err(error) => println!("SINTERSTORE error {}", error),
+        }
+    }
+
+    unsafe fn sinter(&self, args: Vec<&str>) {
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<Vec<String>>("SINTER", args) {
+            Ok(v) => {
+                let mut header: Vec<String> = Vec::with_capacity(1);
+                header.push("sinter-value".to_string());
+                let mut data: Vec<Vec<String>> = Vec::new();
+                for i in 0..v.len() {
+                    let mut son_data = Vec::with_capacity(1);
+                    son_data.push(v[i].to_string());
+                    data.push(son_data);
+                }
+                cvt_cmd::set::SetCMD {}.l_pub_k_mv(header, data);
+            }
+            Err(error) => println!("SINTER error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn sdiffstore(&self, args: Vec<&str>) {
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<i32>("SDIFFSTORE", args.clone()) {
+            Ok(v) => {
+                println!("sdiffstore success key {} ({})", args[0].to_string(), v)
+            }
+            Err(error) => println!("SDIFFSTORE error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn sdiff(&self, keys: Vec<&str>) {
+        let c = &mut *self.clients; // redis client
+        match c.sdiff(keys) {
+            Ok(v) => {
+                let mut header: Vec<String> = Vec::with_capacity(1);
+                header.push("diff-value".to_string());
+                let mut data: Vec<Vec<String>> = Vec::new();
+                for i in 0..v.len() {
+                    let mut son_data = Vec::with_capacity(1);
+                    son_data.push(v[i].to_string());
+                    data.push(son_data);
+                }
+                cvt_cmd::set::SetCMD {}.l_pub_k_mv(header, data);
+            }
+            Err(error) => println!("SDIFF error {}", error),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn scard(&self, key: String) {
+        let c = &mut *self.clients; // redis client
+        match c.scard(&key) {
+            Ok(c) => {
+                let mut header: Vec<String> = Vec::with_capacity(3);
+                header.push("key".to_string());
+                header.push("type".to_string());
+                header.push("value".to_string());
+                let mut data = Vec::with_capacity(3);
+                data.push(key.clone());
+                data.push("set".to_string());
+                data.push(c.abs().to_string());
+                cvt_cmd::set::SetCMD {}.l_pub_k_v(header, data);
+            }
+            Err(_) => todo!(),
+        }
+    }
+
+    #[allow(dead_code)]
+    unsafe fn sadd(&self, key: String, member: String) {
+        let c = &mut *self.clients; // redis client
+        match c.sadd(&key, &member) {
+            Ok(v) => {
+                println!("sadd success ({})", v)
+            }
+            Err(error) => {
+                println!(
+                    "sadd key {} member {} failed! error {}",
+                    key.clone(),
+                    member,
+                    error
+                )
+            }
+        }
+    }
+
     #[allow(dead_code)]
     unsafe fn rpushx(&self, key: String, values: Vec<&str>) {
         for x in 0..values.len() {
