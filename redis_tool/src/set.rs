@@ -26,19 +26,24 @@ impl Set for cvt::Cvt {
     #[allow(dead_code)]
     unsafe fn sscan(&self, args: Vec<&str>) {
         let c = &mut *self.clients; // redis client
-        match c.run_command::<Vec<String>>("SSCAN", args) {
+        match c.run_command::<Vec<Vec<String>>>("SSCAN", args) {
             Ok(v) => {
-                let mut header: Vec<String> = Vec::with_capacity(2);
-                header.push("number".to_string());
-                header.push("union-member".to_string());
-                let mut data: Vec<Vec<String>> = Vec::new();
-                for i in 0..v.len() {
-                    let mut son_data = Vec::with_capacity(2);
-                    son_data.push(i.to_string());
-                    son_data.push(v[i].to_string());
-                    data.push(son_data);
+                if v.len()>0{
+                    let mut header: Vec<String> = Vec::with_capacity(2);
+                    header.push("number".to_string());
+                    header.push("union-member".to_string());
+                    let mut data: Vec<Vec<String>> = Vec::new();
+                    for i in 0..v[0].len() {
+                        let mut son_data = Vec::with_capacity(2);
+                        son_data.push(i.to_string());
+                        son_data.push(v[0][i].to_string());
+                        data.push(son_data);
+                    }
+                    cvt_cmd::set::SetCMD {}.l_pub_k_mv(header, data);
+                }else{
+                    println!("SSCAN value is none!");
                 }
-                cvt_cmd::set::SetCMD {}.l_pub_k_mv(header, data);
+                
             }
             Err(error) => println!("SSCAN error {}", error),
         }

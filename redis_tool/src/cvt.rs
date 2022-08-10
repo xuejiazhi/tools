@@ -41,6 +41,8 @@ impl Cvt {
 
         //match cmd to oprate
         let cmdlist = String::from(&usecmds[0]).to_lowercase();
+        //命令
+        let args = function::capture_vec_string(usecmds.clone(), 1, usecmds.len());
         match &cmdlist as &str {
             "help" => Route {
                 cmd: self.cmd.to_string(),
@@ -1233,12 +1235,146 @@ impl Cvt {
             //SORTSET 有序集合
             //[ZADD]
             "zadd" => {
-                if cmd_length < 4 {
-                    println!("ZADD {} 4", constrs::CLI_LENGTH_TAHN);
+                if !judgement_than(cmd_length, 4, "ZADD") {
                     return;
-                }
-                let args = function::capture_vec_string(usecmds.clone(), 1, usecmds.len());
+                };
                 unsafe { self.zadd(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZCARD]
+            "zcard" => {
+                if !judgement_equal(cmd_length, 4, "ZCARD") {
+                    return;
+                };
+                unsafe { self.zcard(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZCOUNT]
+            "zcount" => {
+                if !judgement_equal(cmd_length, 4, "ZCOUNT") {
+                    return;
+                };
+                unsafe { self.zcount(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZINCRBY]
+            "zincrby" => {
+                if !judgement_equal(cmd_length, 4, "ZINCRBY") {
+                    return;
+                };
+                unsafe { self.zincrby(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZINTERSTORE]
+            "zinterstore" => {
+                if !judgement_than(cmd_length, 4, "ZINTERSTORE") {
+                    return;
+                };
+                unsafe { self.zinterstore(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZLEXCOUNT]
+            "zlexcount" => {
+                if !judgement_equal(cmd_length, 4, "ZLEXCOUNT") {
+                    return;
+                };
+                unsafe { self.zlexcount(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZRANGE]
+            "zrange" => {
+                if !judgement_than(cmd_length, 4, "ZRANGE") {
+                    return;
+                };
+                unsafe { self.zrange(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZRANGEBYLEX]
+            "zrangebylex" => {
+                if !judgement_than(cmd_length, 4, "ZRANGEBYLEX") {
+                    return;
+                };
+                unsafe { self.zrangebylex(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZRANGEBYSCORE]
+            "zrangebyscore" => {
+                if !judgement_than(cmd_length, 4, "ZRANGEBYSCORE") {
+                    return;
+                };
+                unsafe { self.zrangebyscore(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZRANK]
+            "zrank" => {
+                if !judgement_equal(cmd_length, 3, "ZRANK") {
+                    return;
+                };
+                unsafe { self.zrank(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZREM]
+            "zrem" => {
+                if !judgement_than(cmd_length, 3, "ZREM") {
+                    return;
+                };
+                unsafe { self.zrem(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZREMRANGEBYLEX]
+            "zremrangebylex" => {
+                if !judgement_equal(cmd_length, 4, "ZREMRANGEBYLEX") {
+                    return;
+                };
+                unsafe { self.zremrangebylex(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZREMRANGEBYRANK]
+            "zremrangebyrank" => {
+                if !judgement_equal(cmd_length, 4, "ZREMRANGEBYRANK") {
+                    return;
+                };
+                unsafe { self.zremrangebyrank(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZREMRANGEBYSCORE]
+            "zremrangebyscore" => {
+                if !judgement_equal(cmd_length, 4, "ZREMRANGEBYSCORE") {
+                    return;
+                };
+                unsafe { self.zremrangebyscore(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZREVRANGE]
+            "zrevrange" => {
+                if !judgement_than(cmd_length, 4, "ZREVRANGE") {
+                    return;
+                };
+                unsafe { self.zrevrange(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZSCORE]
+            "zscore" => {
+                if !judgement_equal(cmd_length, 3, "ZSCORE") {
+                    return;
+                };
+                unsafe { self.zscore(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZUNIONSTORE]
+            "zunionstore" => {
+                if !judgement_than(cmd_length, 4, "ZUNIONSTORE") {
+                    return;
+                };
+                unsafe { self.zunionstore(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            //[ZSCAN]
+            "zscan" => {
+                if !judgement_than(cmd_length, 3, "ZSCAN") {
+                    return;
+                };
+                unsafe { self.zscan(Vec::from_iter(args.iter().map(String::as_str))) }
             }
 
             _ => {
@@ -1247,6 +1383,26 @@ impl Cvt {
                 } else {
                     println!("{}", constrs::CMD_IS_FAIL);
                 }
+            }
+        }
+
+        //判断长度大于
+        fn judgement_than(length: usize, min_length: usize, cmd_str: &str) -> bool {
+            if length < min_length {
+                println!("{} {} {}", cmd_str, constrs::CLI_LENGTH_TAHN, min_length);
+                false
+            } else {
+                true
+            }
+        }
+
+        //判断长度等于
+        fn judgement_equal(length: usize, min_length: usize, cmd_str: &str) -> bool {
+            if length != min_length {
+                println!("{} {} {}", cmd_str, constrs::CLI_LENGTH_IS_FAIL, min_length);
+                false
+            } else {
+                true
             }
         }
     }

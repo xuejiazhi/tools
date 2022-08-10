@@ -1,6 +1,6 @@
 use crate::{
     cmd as cvt_cmd,
-    cmd::{hash::Cmd, string::Cmd as StringCMD},
+    cmd::{hash::Cmd, set::Cmd as SetCMD, string::Cmd as StringCMD},
     cvt,
 };
 use std::collections::HashMap;
@@ -27,9 +27,25 @@ impl Hash for cvt::Cvt {
     #[allow(dead_code)]
     unsafe fn hscan(&self, keys: Vec<&str>) {
         let c = &mut *self.clients; // redis client
-        match c.run_command::<Vec<String>>("HSCAN", keys.clone()) {
+        match c.run_command::<Vec<Vec<String>>>("HSCAN", keys.clone()) {
             Ok(v) => {
-                println!("hscan->{:?}", v);
+                if v.len() > 0 {
+                    if v.len() > 0 {
+                        let mut header: Vec<String> = Vec::with_capacity(2);
+                        header.push("number".to_string());
+                        header.push("hscan-value".to_string());
+                        let mut data: Vec<Vec<String>> = Vec::new();
+                        for i in 0..v[0].len() {
+                            let mut son_data = Vec::with_capacity(2);
+                            son_data.push(i.to_string());
+                            son_data.push(v[0][i].to_string());
+                            data.push(son_data);
+                        }
+                        cvt_cmd::set::SetCMD {}.l_pub_k_mv(header, data);
+                    } else {
+                        println!("HSCAN value is none!");
+                    }
+                }
             }
             Err(e) => {
                 println!("{}", e.to_string())

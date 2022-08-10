@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     cmd as cvt_cmd,
-    cmd::{hash::Cmd, string::Cmd as StringCMD},
+    cmd::{string::Cmd as StringCMD},
     cvt, stringopt::StringOpt,
 };
 
