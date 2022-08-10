@@ -8,6 +8,12 @@ pub fn usize_2_string(v: usize) -> String {
     data
 }
 
+pub fn isize_2_string(v: isize) -> String {
+    let data = (v as i32).to_string();
+    data
+}
+
+
 pub fn i32_2_isize(v: i32) -> isize {
     v.try_into().unwrap()
 }

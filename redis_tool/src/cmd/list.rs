@@ -8,7 +8,7 @@ pub struct ListCMD {}
 
 pub trait Cmd {
     fn blpop(&self, data: HashMap<String, String>);
-    fn lindex(&self, key: String, indexs: usize, value: String);
+    fn lindex(&self, key: String, indexs: isize, value: String);
     fn llen(&self, key: String, length: i32);
     fn lrange(&self, data: Vec<String>);
     fn l_pub_k_v(&self,header:Vec<String>,data:HashMap<String,String>);
@@ -39,8 +39,8 @@ impl Cmd for ListCMD {
         table.printstd();
     }
 
-    fn lindex(&self, key: String, index: usize, value: String) {
-        let index = function::usize_2_string(index);
+    fn lindex(&self, key: String, index: isize, value: String) {
+        let index = function::isize_2_string(index);
         // let b = a.to_string();
         // 创建表格
         let mut table = Table::new();

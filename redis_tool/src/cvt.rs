@@ -865,7 +865,7 @@ impl Cvt {
                     return;
                 }
 
-                match usize::from_str_radix(usecmds[2].as_str(), 10) {
+                match isize::from_str_radix(usecmds[2].as_str(), 10) {
                     Ok(v) => unsafe { self.lindex(usecmds[1].as_str().to_string(), v) },
                     Err(error) => {
                         println!("LINDEX {}{}", constrs::CMD_IS_FAIL, error);

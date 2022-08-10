@@ -15,7 +15,7 @@ pub trait List {
     unsafe fn lpop(&self, key: String);
     unsafe fn llen(&self, key: String);
     unsafe fn linsert(&self, args: Vec<&str>);
-    unsafe fn lindex(&self, key: String, index: usize);
+    unsafe fn lindex(&self, key: String, index: isize);
     unsafe fn brpoplpush(&self, args: Vec<&str>);
     unsafe fn brpop(&self, args: Vec<&str>);
     unsafe fn blpop(&self, args: Vec<&str>);
@@ -213,7 +213,7 @@ impl List for cvt::Cvt {
     }
 
     #[allow(dead_code)]
-    unsafe fn lindex(&self, key: String, index: usize) {
+    unsafe fn lindex(&self, key: String, index: isize) {
         let c = &mut *self.clients; // redis client
         match c.lindex::<String>(&key, index.try_into().unwrap()) {
             Ok(value) => cvt_cmd::list::ListCMD {}.lindex(key, index, value),

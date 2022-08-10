@@ -6,6 +6,7 @@ use crate::{
 use super::{
     hash::{HashHelp, Help as HsHelp},
     key::{Help as KHelp, KeyHelp},
+    list::{Help as LstHelp, ListHelp},
     string::{Help as StrHelp, StringHelp},
 };
 
@@ -82,7 +83,16 @@ impl Route {
                         "hset" => HashHelp {}.help_hset(),
                         "hsetnx" => HashHelp {}.help_hsetnx(),
                         "hvals" => HashHelp {}.help_hvals(),
-                        "hscan" => HashHelp{}.help_hscan(),
+                        "hscan" => HashHelp {}.help_hscan(),
+                        //help list route
+                        "lpush" => ListHelp {}.help_lpush(),
+                        "lrange" => ListHelp {}.help_lrange(),
+                        "blpop" => ListHelp {}.help_blpop(),
+                        "brpop" => ListHelp {}.help_brpop(),
+                        "lindex" => ListHelp {}.help_lindex(),
+                        "linsert" => ListHelp {}.help_linsert(),
+                        "llen" => ListHelp {}.help_llen(),
+                        "lpop" => ListHelp{}.help_lpop(),
                         _ => {}
                     }
                 }
