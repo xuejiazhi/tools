@@ -4,6 +4,12 @@ mod convert_test;
 mod cvt;
 mod util;
 mod help;
+mod sortset;
+mod set;
+mod list;
+mod hash;
+mod stringopt;
+mod keys;
 
 use std::io::{self, stdin, Write};
 

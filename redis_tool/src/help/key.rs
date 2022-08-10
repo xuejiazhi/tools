@@ -441,7 +441,6 @@ redis 127.0.0.1:6379> set test-key newkey
 OK
 redis 127.0.0.1:6379> EXISTS test-key
 (integer) 1
-redis 127.0.0.1:6379>	
             "
         )
     }
