@@ -10,9 +10,438 @@ pub trait Help {
     fn help_linsert(&self);
     fn help_llen(&self);
     fn help_lpop(&self);
+    fn help_lpushx(&self);
+    fn help_brpoplpush(&self);
+    fn help_lrem(&self);
+    fn help_lset(&self);
+    fn help_ltrim(&self);
+    fn help_rpop(&self);
+    fn help_rpoplpush(&self);
+    fn help_rpush(&self);
+    fn help_rpushx(&self);
 }
 
 impl Help for ListHelp {
+    fn help_rpushx(&self) {
+        println!(
+            "
+Redis Rpushx 命令用于将一个值插入到已存在的列表尾部(最右边)。如果列表不存在，操作无效。
+
+语法
+redis Rpushx 命令基本语法如下：
+
+redis 127.0.0.1:6379> RPUSHX KEY_NAME VALUE1..VALUEN
+可用版本
+>= 2.2.0
+
+返回值
+执行 Rpushx 操作后，列表的长度。
+
+实例
+127.0.0.1:6379~[db0]#> keys mylist
++--------+-----+
+| number | key |
++--------+-----+
+127.0.0.1:6379~[db0]#> rpushx mylist hello world
+0) lpushx key mylist value hello success!
+1) lpushx key mylist value world success!
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+127.0.0.1:6379~[db0]#> lpush mylist hi
+0) lpush key mylist value hi success!
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hi   |
++-----+-------+
+127.0.0.1:6379~[db0]#> rpushx mylist hello world
+0) lpushx key mylist value hello success!
+1) lpushx key mylist value world success!
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | world |
++-----+-------+
+| 1   | hello |
++-----+-------+
+| 2   | hi   |
++-----+-------+ 
+    "
+        )
+    }
+
+    fn help_rpush(&self) {
+        println!(
+            "
+###################################################################
+Redis Rpush 命令用于将一个或多个值插入到列表的尾部(最右边)。
+
+如果列表不存在，一个空列表会被创建并执行 RPUSH 操作。 当列表存在但不是列表类型时，返回一个错误。
+
+注意：在 Redis 2.4 版本以前的 RPUSH 命令，都只接受单个 value 值。
+
+语法
+redis Rpush 命令基本语法如下：
+
+redis 127.0.0.1:6379> RPUSH KEY_NAME VALUE1..VALUEN
+可用版本
+>= 1.0.0
+
+返回值
+执行 RPUSH 操作后，列表的长度。
+
+实例
+
+实例
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+127.0.0.1:6379~[db0]#> rpush mylist hello 
+0) rpush key mylist value hello success!
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1 
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | hello |
++-----+-------+
+| 2   | bar   |
++-----+-------+
+###################################################################       
+        "
+        )
+    }
+    
+    fn help_rpoplpush(&self) {
+        println!(
+            "
+###################################################################
+Redis Rpoplpush 命令用于移除列表的最后一个元素，并将该元素添加到另一个列表并返回。
+
+语法
+redis Rpoplpush 命令基本语法如下：
+
+redis 127.0.0.1:6379> RPOPLPUSH SOURCE_KEY_NAME DESTINATION_KEY_NAME
+可用版本
+>= 1.0.0
+
+返回值
+被弹出的元素。
+
+实例
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1 
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | hello |
++-----+-------+
+| 2   | bar   |
++-----+-------+
+127.0.0.1:6379~[db0]#> rpoplpush mylist myotherlist 
+RPOPLPUSH success value bar
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | hello |
++-----+-------+
+127.0.0.1:6379~[db0]#> lrange myotherlist 0 -1 
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | bar   |
++-----+-------+
+###################################################################   
+    "
+        )
+    }
+
+    fn help_rpop(&self) {
+        println!(
+            "
+###################################################################
+Redis Rpop 命令用于移除列表的最后一个元素，返回值为移除的元素。
+
+语法
+redis Rpop 命令基本语法如下：
+
+redis 127.0.0.1:6379> RPOP KEY_NAME 
+可用版本
+>= 1.0.0
+
+返回值
+被移除的元素。
+
+当列表不存在时，返回 nil 。
+
+实例
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1 
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+| 2   | world |
++-----+-------+
+127.0.0.1:6379~[db0]#> rpop mylist
++----------+-------+
+| list_key | value |
++----------+-------+
+| mylist   | world |
++----------+-------+
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+###################################################################    
+    "
+        )
+    }
+
+    fn help_ltrim(&self) {
+        println!("
+###################################################################
+Redis Ltrim 对一个列表进行修剪(trim)，就是说，让列表只保留指定区间内的元素，不在指定区间之内的元素都将被删除。
+
+下标 0 表示列表的第一个元素，以 1 表示列表的第二个元素，以此类推。 你也可以使用负数下标，以 -1 表示列表的最后一个元素， -2 表示列表的倒数第二个元素，以此类推。
+
+语法
+redis Ltrim 命令基本语法如下：
+
+redis 127.0.0.1:6379> LTRIM KEY_NAME START STOP
+可用版本
+>= 1.0.0
+
+返回值
+命令执行成功时，返回 ok 。
+
+实例
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | bad   |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+| 2   | world |
++-----+-------+
+127.0.0.1:6379~[db0]#> ltrim mylist 1 -1 
+LTRIM success
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | bar   |
++-----+-------+
+| 1   | world |
++-----+-------+
+###################################################################    
+    ")
+    }
+
+    fn help_lset(&self) {
+        println!(
+            "
+###################################################################
+Redis Lset 通过索引来设置元素的值。
+
+当索引参数超出范围，或对一个空列表进行 LSET 时，返回一个错误。
+
+关于列表下标的更多信息，请参考 LINDEX 命令。
+
+语法
+redis Lset 命令基本语法如下：
+
+redis 127.0.0.1:6379> LSET KEY_NAME INDEX VALUE
+可用版本
+>= 1.0.0
+
+返回值
+操作成功返回 ok ，否则返回错误信息。
+
+实例
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+| 2   | world |
++-----+-------+
+127.0.0.1:6379~[db0]#> lset mylist 0 bad   
+LSET success
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | bad   |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+| 2   | world |
++-----+-------+
+###################################################################
+    "
+        )
+    }
+
+    fn help_lrem(&self) {
+        println!(
+            "
+###################################################################
+Redis Lrem 根据参数 COUNT 的值，移除列表中与参数 VALUE 相等的元素。
+
+COUNT 的值可以是以下几种：
+
+count > 0 : 从表头开始向表尾搜索，移除与 VALUE 相等的元素，数量为 COUNT 。
+count < 0 : 从表尾开始向表头搜索，移除与 VALUE 相等的元素，数量为 COUNT 的绝对值。
+count = 0 : 移除表中所有与 VALUE 相等的值。
+语法
+redis Lrem 命令基本语法如下：
+
+redis 127.0.0.1:6379> LREM key count VALUE
+可用版本
+>= 1.0.0
+
+返回值
+被移除元素的数量。 列表不存在时返回 0 。
+
+实例
+127.0.0.1:6379~[db0]#> rpush mylist hello
+ 0) rpush key mylist value hello success!
+127.0.0.1:6379~[db0]#> rpush mylist hello
+ 0) rpush key mylist value hello success!
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1 
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | hello |
++-----+-------+
+| 2   | bar   |
++-----+-------+
+| 3   | world |
++-----+-------+
+| 4   | hello |
++-----+-------+
+127.0.0.1:6379~[db0]#> lrem mylist -2 hello   
++--------+------------+
+| key    | lrem_count |
++--------+------------+
+| mylist | 2          |
++--------+------------+
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1   
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+| 2   | world |
++-----+-------+
+###################################################################
+    "
+        )
+    }
+
+    fn help_brpoplpush(&self) {
+        println!(
+            "
+###################################################################
+Redis Brpoplpush 命令从列表中取出最后一个元素，并插入到另外一个列表的头部； 
+如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止。
+
+语法
+redis Brpoplpush 命令基本语法如下：
+
+redis 127.0.0.1:6379> BRPOPLPUSH LIST1 ANOTHER_LIST TIMEOUT 
+可用版本
+>= 2.0.0
+
+返回值
+假如在指定时间内没有任何元素被弹出，则返回一个 nil 和等待时长。 反之，返回一个
+含有两个元素的列表，第一个元素是被弹出元素的值，第二个元素是等待时长。
+
+实例
+127.0.0.1:6379~[db0]#> brpoplpush mylist mylist_bak 10
++----------+-------+
+| list_key | value |       
++----------+-------+       
+| mylist   | test1 |       
++----------+-------+       
+127.0.0.1:6379~[db0]#> exists mylist_bak
+true
+127.0.0.1:6379~[db0]#> lrange mylist_bak 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | test1 |
++-----+-------+
+################################################################### 
+    "
+        )
+    }
+
+    fn help_lpushx(&self) {
+        println!(
+            "
+###################################################################
+Redis Lpushx 将一个值插入到已存在的列表头部，列表不存在时操作无效。
+
+语法
+redis Lpushx 命令基本语法如下：
+
+redis 127.0.0.1:6379> LPUSHX KEY_NAME VALUE1.. VALUEN
+可用版本
+>= 2.2.0
+
+返回值
+LPUSHX 命令执行之后，列表的长度。
+
+实例
+127.0.0.1:6379~[db0]#> lpushx mylist bar
+0) lpushx key mylist value bar success!
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | bar   |
++-----+-------+
+| 1   | world |
++-----+-------+
+| 2   | hello |
++-----+-------+
+
+###################################################################
+    "
+        )
+    }
+
     fn help_lpop(&self) {
         println!(
             "
@@ -178,7 +607,8 @@ redis 127.0.0.1:6379> BLPOP LIST1 LIST2 .. LISTN TIMEOUT
 
     fn help_lrange(&self) {
         println!("
-Redis Lrange 返回列表中指定区间内的元素，区间以偏移量 START 和 END 指定。 其中 0 表示列表的第一个元素， 1 表示列表的第二个元素，以此类推。 你也可以使用负数下标，以 -1 表示列表的最后一个元素， -2 表示列表的倒数第二个元素，以此类推。
+Redis Lrange 返回列表中指定区间内的元素，区间以偏移量 START 和 END 指定。 其中 0 表示列表的第一个元素，
+ 1 表示列表的第二个元素，以此类推。 你也可以使用负数下标，以 -1 表示列表的最后一个元素， -2 表示列表的倒数第二个元素，以此类推。
 
 语法
 redis Lrange 命令基本语法如下：

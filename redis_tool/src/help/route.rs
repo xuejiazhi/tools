@@ -92,7 +92,16 @@ impl Route {
                         "lindex" => ListHelp {}.help_lindex(),
                         "linsert" => ListHelp {}.help_linsert(),
                         "llen" => ListHelp {}.help_llen(),
-                        "lpop" => ListHelp{}.help_lpop(),
+                        "lpop" => ListHelp {}.help_lpop(),
+                        "lpushx" => ListHelp {}.help_lpushx(),
+                        "brpoplpush" => ListHelp {}.help_brpoplpush(),
+                        "lrem" =>ListHelp{}.help_lrem(),
+                        "lset" => ListHelp{}.help_lset(),
+                        "ltrim" => ListHelp{}.help_ltrim(),
+                        "rpop" => ListHelp{}.help_rpop(),
+                        "rpoplpush" => ListHelp{}.help_rpoplpush(),
+                        "rpush" => ListHelp{}.help_rpush(),
+                        "rpushx" => ListHelp{}.help_rpushx(),
                         _ => {}
                     }
                 }
@@ -165,6 +174,25 @@ Hset              该命令用于为哈希表中的字段赋值
 Hsetnx            该命令用于为哈希表中不存在的的字段赋值
 Hvals             该命令返回哈希表所有的值
 HSCAN             该命令用于迭代哈希表中的键值对[无用]
+
+【List】
+Rpushx            命令用于将一个值插入到已存在的列表尾部(最右边)。如果列表不存在，操作无效
+Rpush             命令用于将一个或多个值插入到列表的尾部(最右边)
+Rpoplpush         命令用于移除列表的最后一个元素，并将该元素添加到另一个列表并返回
+Rpop              命令用于移除列表的最后一个元素，返回值为移除的元素
+Ltrim             对一个列表进行修剪(trim)，就是说，让列表只保留指定区间内的元素，不在指定区间之内的元素都将被删除
+Lset              通过索引来设置元素的值。当索引参数超出范围，或对一个空列表进行 LSET 时，返回一个错误
+Lrem              根据参数 COUNT 的值，移除列表中与参数 VALUE 相等的元素
+Brpoplpush        命令从列表中取出最后一个元素，并插入到另外一个列表的头部;如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止
+Lpushx            将一个值插入到已存在的列表头部，列表不存在时操作无效
+Lpop              命令用于移除并返回列表的第一个元素
+Llen              命令用于返回列表的长度。 如果列表 key 不存在，则 key 被解释为一个空列表，返回 0 。 如果 key 不是列表类型，返回一个错误
+Linsert           命令用于在列表的元素前或者后插入元素。当指定元素不存在于列表中时，不执行任何操作
+Lindex            命令用于通过索引获取列表中的元素。你也可以使用负数下标，以 -1 表示列表的最后一个元素， -2 表示列表的倒数第二个元素，以此类推
+Brpop             命令移出并获取列表的最后一个元素， 如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止
+Blpop             命令移出并获取列表的第一个元素， 如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止
+Lrange            返回列表中指定区间内的元素，区间以偏移量 START 和 END 指定。 其中 0 表示列表的第一个元素，1 表示列表的第二个元素，以此类推。 你也可以使用负数下标，以 -1 表示列表的最后一个元素， -2 表示列表的倒数第二个元素，以此类推
+Lpush             命令将一个或多个值插入到列表头部。 如果 key 不存在，一个空列表会被创建并执行 LPUSH 操作。 当 key 存在但不是列表类型时，返回一个错误
         ")
     }
 }
