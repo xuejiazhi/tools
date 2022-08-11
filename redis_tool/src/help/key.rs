@@ -2,23 +2,23 @@
 pub struct KeyHelp {}
 
 pub trait Help {
-    fn help_del(&self);
-    fn help_dump(&self);
-    fn help_exists(&self);
-    fn help_expire(&self);
-    fn help_expireat(&self);
-    fn help_pexpire(&self);
-    fn help_pexpireat(&self);
-    fn help_keys(&self);
-    fn help_move(&self);
-    fn help_persist(&self);
-    fn help_pttl(&self);
-    fn help_ttl(&self);
-    fn help_randomkey(&self);
-    fn help_rename(&self);
-    fn help_renamenx(&self);
+    fn help_del(&self);  //ok
+    fn help_dump(&self); //ok
+    fn help_exists(&self); //ok
+    fn help_expire(&self);//ok
+    fn help_expireat(&self);//ok
+    fn help_pexpire(&self);  //ok
+    fn help_pexpireat(&self); //ok
+    fn help_keys(&self);  //ok
+    fn help_move(&self);  //ok
+    fn help_persist(&self); //ok
+    fn help_pttl(&self); //ok
+    fn help_ttl(&self);  //ok
+    fn help_randomkey(&self);  //ok
+    fn help_rename(&self); //ok
+    fn help_renamenx(&self); //ok
     fn help_scan(&self);
-    fn help_type(&self);
+    fn help_type(&self); //ok
 }
 
 impl Help for KeyHelp {
@@ -179,7 +179,7 @@ redis 127.0.0.1:6379> RANDOMKEY
 
     fn help_ttl(&self) {
         println!("
-        ### Redis TTL 命令以秒为单位返回 key 的剩余过期时间。
+### Redis TTL 命令以秒为单位返回 key 的剩余过期时间。
 
 ### 语法
 redis TTL 命令基本语法如下：

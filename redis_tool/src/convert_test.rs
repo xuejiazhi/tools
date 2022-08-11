@@ -100,7 +100,7 @@ fn test_str2f64() {
     //         println!("error=>{}",e.to_string())
     //     },
     // }
-    let mut s = -2;
+    // let mut s = -2;
 }
 
 #[test]
