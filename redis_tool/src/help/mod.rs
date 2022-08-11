@@ -8,3 +8,5 @@ pub mod key;
 pub mod string;
 #[macro_use]
 pub mod list;
+#[macro_use]
+pub mod set;

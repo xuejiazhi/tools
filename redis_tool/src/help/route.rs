@@ -8,6 +8,7 @@ use super::{
     key::{Help as KHelp, KeyHelp},
     list::{Help as LstHelp, ListHelp},
     string::{Help as StrHelp, StringHelp},
+    set::{Help as StHelp,SetHelp},
 };
 
 pub struct Route {
@@ -102,6 +103,23 @@ impl Route {
                         "rpoplpush" => ListHelp{}.help_rpoplpush(),
                         "rpush" => ListHelp{}.help_rpush(),
                         "rpushx" => ListHelp{}.help_rpushx(),
+                        //help Set route
+                        "sadd" => SetHelp{}.help_sadd(),
+                        "scard"=>SetHelp{}.help_scard(),
+                        "sdiff"=>SetHelp{}.help_sdiff(),
+                        "sdiffstore"=>SetHelp{}.help_sdiffstore(),
+                        "sinter"=>SetHelp{}.help_sinter(),
+                        "sinterstore"=>SetHelp{}.help_sinterstore(),
+                        "sscan"=>SetHelp{}.help_sscan(),
+                        "sunionstore"=>SetHelp{}.help_sunionstore(),
+                        "sunion"=>SetHelp{}.help_sunion(),
+                        "srem"=>SetHelp{}.help_srem(),
+                        "srandmember"=>SetHelp{}.help_srandmember(),
+                        "spop"=>SetHelp{}.help_spop(),
+                        "smove"=>SetHelp{}.help_smove(),
+                        "smembers"=>SetHelp{}.help_smembers(),
+                        "sismember"=>SetHelp{}.help_sismember(),
+
                         _ => {}
                     }
                 }
@@ -193,6 +211,9 @@ Brpop             命令移出并获取列表的最后一个元素， 如果列�
 Blpop             命令移出并获取列表的第一个元素， 如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止
 Lrange            返回列表中指定区间内的元素，区间以偏移量 START 和 END 指定。 其中 0 表示列表的第一个元素，1 表示列表的第二个元素，以此类推。 你也可以使用负数下标，以 -1 表示列表的最后一个元素， -2 表示列表的倒数第二个元素，以此类推
 Lpush             命令将一个或多个值插入到列表头部。 如果 key 不存在，一个空列表会被创建并执行 LPUSH 操作。 当 key 存在但不是列表类型时，返回一个错误
+
+【Set】
+
         ")
     }
 }
