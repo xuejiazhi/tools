@@ -1,4 +1,5 @@
 # redis_tool 简价
+[![imi License](https://img.shields.io/badge/license-AGPLv3-brightgreen.svg)](https://github.com/xuejiazhi/tools/blob/master/redis_tool/LICENSE)
 
 redis_tool 是一个模拟redis-cli的工具,对redis查询出来的结果进行格式化的展示,采用rust进行开发,可以多平台下面编译使用：
 
