@@ -1138,14 +1138,18 @@ impl Cvt {
 
             //[SPOP]
             "spop" => {
-                if cmd_length != 3 {
-                    println!("SPOP {} 3", constrs::CLI_LENGTH_IS_FAIL);
+                if cmd_length < 2 {
+                    println!("SPOP {} 2", constrs::CLI_LENGTH_TAHN);
                     return;
                 }
 
-                match isize::from_str_radix(usecmds[2].as_str(), 10) {
-                    Ok(c) => unsafe { self.spop(usecmds[1].to_string(), c) },
-                    Err(error) => println!("SPOP count must number,{}", error),
+                if cmd_length > 2 {
+                    match isize::from_str_radix(usecmds[2].as_str(), 10) {
+                        Ok(c) => unsafe { self.spop(usecmds[1].to_string(), c) },
+                        Err(error) => println!("SPOP count must number,{}", error),
+                    }
+                } else {
+                    unsafe { self.spop(usecmds[1].to_string(), 1) }
                 }
             }
 
@@ -1194,7 +1198,7 @@ impl Cvt {
                     return;
                 }
                 let args = function::capture_vec_string(usecmds.clone(), 1, usecmds.len());
-                unsafe { self.sunion(Vec::from_iter(args.iter().map(String::as_str))) }
+                unsafe { self.sunionstore(Vec::from_iter(args.iter().map(String::as_str))) }
             }
 
             //[SSCAN]
