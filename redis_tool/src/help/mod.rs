@@ -10,3 +10,5 @@ pub mod string;
 pub mod list;
 #[macro_use]
 pub mod set;
+#[macro_use]
+pub mod setsort;

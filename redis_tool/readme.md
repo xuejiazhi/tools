@@ -538,6 +538,7 @@ Cursor -> 0
 +--------+--------+
 ```     
 
+#  String
 ##  Append 命令用于为指定的 key 追加值。
 ```bash
 如果 key 已经存在并且是一个字符串， APPEND 命令将 value 追加到 key 原来的值的末尾。
@@ -1103,3 +1104,1061 @@ redis 127.0.0.1:6379> SET KEY_NAME VALUE
 | SET  | newkey | hello world | Success |
 +------+--------+-------------+---------+
  ```
+
+#  Hash
+```bash
+## HSCAN 命令用于迭代哈希表中的键值对。
+
+语法
+redis HSCAN 命令基本语法如下：
+
+HSCAN key cursor [MATCH pattern] [COUNT count]
+cursor - 游标。
+pattern - 匹配的模式。
+count - 指定从数据集里返回多少元素，默认值为 10 。
+可用版本
+>= 2.8.0
+
+返回值
+返回的每个元素都是一个元组，每一个元组元素由一个字段(field) 和值（value）组成。
+
+实例
+127.0.0.1:6379~[db0]#> hset hashset a hello
+hset hash key hashset field a success (^v^)
+127.0.0.1:6379~[db0]#> hset hashset b world 
+hset hash key hashset field b success (^v^)
+127.0.0.1:6379~[db0]#> hgetall hashset
++-------+-------+
+| field | value |
++-------+-------+
+| b     | world |
++-------+-------+
+| a     | hello |
++-------+-------+
+127.0.0.1:6379~[db0]#> hscan hashset 0 match *
++--------+-------------+
+| number | hscan-value |
++--------+-------------+
+| 0      | a           |
++--------+-------------+
+| 1      | hello       |
++--------+-------------+
+| 2      | b           |
++--------+-------------+
+| 3      | world       |
++--------+-------------+
+```
+
+
+## Hvals 命令返回哈希表所有的值。
+```bash
+语法
+redis Hvals 命令基本语法如下：
+
+redis 127.0.0.1:6379> HVALS key
+可用版本
+>= 2.0.0
+
+返回值
+一个包含哈希表中所有值的列表。 当 key 不存在时，返回一个空表。
+
+实例
+127.0.0.1:6379~[db0]#> hvals mykey
++--------+-------+
+| number | field |
++--------+-------+
+| 1      | 10.5  |
++--------+-------+
+| 2      | 11.5  |
++--------+-------+
+| 3      | 12.3  |
++--------+-------+
+| 4      | 23.1  |
++--------+-------+
+| 5      | 11.1  |
++--------+-------+
+```
+
+
+
+## Hsetnx 命令用于为哈希表中不存在的的字段赋值 。
+```bash
+如果哈希表不存在，一个新的哈希表被创建并进行 HSET 操作。
+
+如果字段已经存在于哈希表中，操作无效。
+
+如果 key 不存在，一个新哈希表被创建并执行 HSETNX 命令。
+
+语法
+redis Hsetnx 命令基本语法如下：
+
+redis 127.0.0.1:6379> HSETNX KEY_NAME FIELD VALUE
+可用版本
+>= 2.0.0
+
+返回值
+设置成功，返回 1 。 如果给定字段已经存在且没有操作被执行，返回原来的值，不会被设置。
+
+实例
+127.0.0.1:6379~[db0]#> hsetnx nxkey f 11.4
+hsetnx field f success
++----------+-------+-------+
+| hash-key | field | value |
++----------+-------+-------+
+| nxkey    | f     | 11.4  |
++----------+-------+-------+
+127.0.0.1:6379~[db0]#> hsetnx nxkey f 11.5
+hsetnx field f success
++----------+-------+-------+
+| hash-key | field | value |
++----------+-------+-------+
+| nxkey    | f     | 11.4  |
++----------+-------+-------+   
+```
+
+
+
+## Hset 命令用于为哈希表中的字段赋值 。
+```bash
+如果哈希表不存在，一个新的哈希表被创建并进行 HSET 操作。
+
+如果字段已经存在于哈希表中，旧值将被覆盖。
+
+语法
+redis Hset 命令基本语法如下：
+
+redis 127.0.0.1:6379> HSET KEY_NAME FIELD VALUE 
+可用版本
+>= 2.0.0
+
+返回值
+如果字段是哈希表中的一个新建字段，并且值设置成功，返回 1 。 如果哈希表中域字段已经存在且旧值已被新值覆盖，返回 0 。
+
+实例
+127.0.0.1:6379~[db0]#> hset mykey d 11.1 
+hset hash key mykey field d success (^v^)
+127.0.0.1:6379~[db0]#> hgetall mykey     
++-------+-------+
+| field | value |
++-------+-------+
+| a     | 11.5  |
++-------+-------+
+| f     | 10.5  |
++-------+-------+
+| d     | 11.1  |
++-------+-------+
+| b     | 12.3  |
++-------+-------+
+| c     | 23.1  |
++-------+-------+
+```
+	
+	
+
+## Hmset 命令用于同时将多个 field-value (字段-值)对设置到哈希表中。
+```bash
+此命令会覆盖哈希表中已存在的字段。
+
+如果哈希表不存在，会创建一个空哈希表，并执行 HMSET 操作。
+
+语法
+redis Hmset 命令基本语法如下：
+
+redis 127.0.0.1:6379> HMSET KEY_NAME FIELD1 VALUE1 ...FIELDN VALUEN  
+可用版本
+>= 2.0.0
+
+返回值
+如果命令执行成功，返回 OK 。
+
+实例
+127.0.0.1:6379~[db0]#> hmset mykey b 12.3 c 23.1
+hmset OK
+127.0.0.1:6379~[db0]#> hgetall mykey
++-------+-------+
+| field | value |
++-------+-------+
+| a     | 11.5  |
++-------+-------+
+| b     | 12.3  |
++-------+-------+
+| f     | 10.5  |
++-------+-------+
+| c     | 23.1  |
++-------+-------+
+```
+ 
+ 
+ 
+
+## Hmget 命令用于返回哈希表中，一个或多个给定字段的值。
+```bash
+如果指定的字段不存在于哈希表，那么返回一个 nil 值。
+
+语法
+redis Hmget 命令基本语法如下：
+
+redis 127.0.0.1:6379> HMGET KEY_NAME FIELD1...FIELDN 
+可用版本
+>= 2.0.0
+
+返回值
+一个包含多个给定字段关联值的表，表值的排列顺序和指定字段的请求顺序一样。
+
+实例
+127.0.0.1:6379~[db0]#> hmget mykey f a
++-----+------+
+| key | val  |
++-----+------+
+| a   | 11.5 |
++-----+------+
+| f   | 10.5 |
++-----+------+
+```   
+   
+   
+   
+
+## Hlen 命令用于获取哈希表中字段的数量。
+```bash
+语法
+redis Hlen 命令基本语法如下：
+
+redis 127.0.0.1:6379> HLEN KEY_NAME 
+可用版本
+>= 2.0.0
+
+返回值
+哈希表中字段的数量。 当 key 不存在时，返回 0 。
+
+实例
+127.0.0.1:6379~[db0]#> hlen mykey
+hlen hash key (mykey) field length is 2 !
+```
+ 
+ 
+ 
+## Hkeys 命令用于获取哈希表中的所有域（field）。
+
+语法
+redis Hkeys 命令基本语法如下：
+
+redis 127.0.0.1:6379> HKEYS key 
+可用版本
+>= 2.0.0
+
+返回值
+包含哈希表中所有域（field）列表。 当 key 不存在时，返回一个空列表。
+
+实例
+127.0.0.1:6379~[db0]#> hkeys mykey       
++--------+-------+
+| number | field |
++--------+-------+
+| 1      | f     |
++--------+-------+
+| 2      | a     |
++--------+-------+  
+```
+ 
+ 
+ 
+## Hincrbyfloat 命令用于为哈希表中的字段值加上指定浮点数增量值。
+```bash
+如果指定的字段不存在，那么在执行命令前，字段的值被初始化为 0 。
+
+语法
+redis Hincrbyfloat 命令基本语法如下：
+
+HINCRBYFLOAT key field increment
+可用版本
+>= 2.6.0
+
+返回值
+执行 Hincrbyfloat 命令之后，哈希表中字段的值。
+
+实例
+
+127.0.0.1:6379~[db0]#> hset mykey f 10.5
+hset hash key mykey field f success (^v^)
+127.0.0.1:6379~[db0]#> hincrbyfloat mykey f 0.1
+hincrbyfloat key mykey field f success!
++----------+-------+-------+
+| hash-key | field | value |
++----------+-------+-------+
+| mykey    | f     | 10.6  |
++----------+-------+-------+
+127.0.0.1:6379~[db0]#> hincrbyfloat mykey f -0.1 
+hincrbyfloat key mykey field f success!
++----------+-------+-------+
+| hash-key | field | value |
++----------+-------+-------+
+| mykey    | f     | 10.5  |
++----------+-------+-------+
+```
+
+
+
+
+
+## Hincrby 命令用于为哈希表中的字段值加上指定增量值。
+```bash
+增量也可以为负数，相当于对指定字段进行减法操作。
+
+如果哈希表的 key 不存在，一个新的哈希表被创建并执行 HINCRBY 命令。
+
+如果指定的字段不存在，那么在执行命令前，字段的值被初始化为 0 。
+
+对一个储存字符串值的字段执行 HINCRBY 命令将造成一个错误。
+
+本操作的值被限制在 64 位(bit)有符号数字表示之内。
+
+语法
+redis Hincrby 命令基本语法如下：
+
+redis 127.0.0.1:6379> HINCRBY KEY_NAME FIELD_NAME INCR_BY_NUMBER 
+可用版本
+>= 2.0.0
+
+返回值
+执行 HINCRBY 命令之后，哈希表中字段的值。
+
+实例
+127.0.0.1:6379~[db0]#> hset myhash 5
+HSET  Cli length is failed,length is  4
+127.0.0.1:6379~[db0]#> hset myhash f 5 
+hset hash key myhash field f success (^v^)
+127.0.0.1:6379~[db0]#> hgetall myhash
++-------+-------+
+| field | value |
++-------+-------+
+| f     | 5     |
++-------+-------+
+127.0.0.1:6379~[db0]#> hincrby myhash f 1 
+hincrby key myhash field f success!
++----------+-------+-------+
+| hash-key | field | value |
++----------+-------+-------+
+| myhash   | f     | 6     |
++----------+-------+-------+
+```  
+	  
+	   
+	  
+## Hgetall 命令用于返回哈希表中，所有的字段和值。
+```bash
+在返回值里，紧跟每个字段名(field name)之后是字段的值(value)，所以返回值的长度是哈希表大小的两倍。
+
+语法
+redis Hgetall 命令基本语法如下：
+
+redis 127.0.0.1:6379> HGETALL KEY_NAME 
+可用版本
+>= 2.0.0
+
+返回值
+以列表形式返回哈希表的字段及字段值。 若 key 不存在，返回空列表。
+
+实例
+127.0.0.1:6379~[db0]#> hgetall byz
++-------+-----------------------+
+| field | value                 |
++-------+-----------------------+
+| lbs   | ['name':'luobaishun'] |
++-------+-----------------------+
+| xjz   | ['name':'xuejiazhi']  |
++-------+-----------------------+
+| lx    | ['name':'liuxiang']   |
++-------+-----------------------+
+```  
+   
+   
+   
+   
+
+## Hget 命令用于返回哈希表中指定字段的值。
+```bash
+语法
+redis Hget 命令基本语法如下：
+
+redis 127.0.0.1:6379> HGET KEY_NAME FIELD_NAME 
+可用版本
+>= 2.0.0
+
+返回值
+返回给定字段的值。如果给定的字段或 key 不存在时，返回 nil 。
+
+实例
+127.0.0.1:6379~[db0]#> hget byz lx
++----------+-------+---------------------+
+| hash-key | field | value               |
++----------+-------+---------------------+
+| byz      | lx    | ['name':'liuxiang'] |
++----------+-------+---------------------+
+```   
+   
+   
+   
+
+## Hexists 命令用于查看哈希表的指定字段是否存在。
+```bash
+语法
+redis Hexists 命令基本语法如下：
+
+redis 127.0.0.1:6379> HEXISTS KEY_NAME FIELD_NAME 
+可用版本
+>= 2.0.0
+
+返回值
+如果哈希表含有给定字段，返回 1 。 如果哈希表不含有给定字段，或 key 不存在，返回 0 。
+
+实例
+127.0.0.1:6379~[db0]#> hexists byz lx
+hexists hash key byz field lx exists!
++----------+-------+---------------------+
+| hash-key | field | value               |
++----------+-------+---------------------+
+| byz      | lx    | ['name':'liuxiang'] |
++----------+-------+---------------------+
+```
+	  
+	  
+	  
+	  
+## Hdel 命令用于删除哈希表 key 中的一个或多个指定字段，不存在的字段将被忽略。
+```bash
+语法
+redis Hdel 命令基本语法如下：
+
+redis 127.0.0.1:6379> HDEL KEY_NAME FIELD1.. FIELDN 
+可用版本
+>= 2.0.0
+
+返回值
+被成功删除字段的数量，不包括被忽略的字段。
+
+实例
+127.0.0.1:6379~[db0]#> hdel byz hdf
+hdel hash key byz field hdf success (^v^)
+127.0.0.1:6379~[db0]#> hget byz
+HGET  Cli length is failed,length is  3
+127.0.0.1:6379~[db0]#> hgetall byz 
++-------+-----------------------+
+| field | value                 |
++-------+-----------------------+
+| xjz   | ['name':'xuejiazhi']  |
++-------+-----------------------+
+| lbs   | ['name':'luobaishun'] |
++-------+-----------------------+
+| lx    | ['name':'liuxiang']   |
++-------+-----------------------+
+```
+
+
+# List
+## Rpushx 命令用于将一个值插入到已存在的列表尾部(最右边)。如果列表不存在，操作无效。
+```bash
+语法
+redis Rpushx 命令基本语法如下：
+
+redis 127.0.0.1:6379> RPUSHX KEY_NAME VALUE1..VALUEN
+可用版本
+>= 2.2.0
+
+返回值
+执行 Rpushx 操作后，列表的长度。
+
+实例
+127.0.0.1:6379~[db0]#> keys mylist
++--------+-----+
+| number | key |
++--------+-----+
+127.0.0.1:6379~[db0]#> rpushx mylist hello world
+0) lpushx key mylist value hello success!
+1) lpushx key mylist value world success!
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+127.0.0.1:6379~[db0]#> lpush mylist hi
+0) lpush key mylist value hi success!
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hi   |
++-----+-------+
+127.0.0.1:6379~[db0]#> rpushx mylist hello world
+0) lpushx key mylist value hello success!
+1) lpushx key mylist value world success!
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | world |
++-----+-------+
+| 1   | hello |
++-----+-------+
+| 2   | hi   |
++-----+-------+ 
+```
+	
+	
+## 	Rpush 命令用于将一个或多个值插入到列表的尾部(最右边)。
+```bash
+如果列表不存在，一个空列表会被创建并执行 RPUSH 操作。 当列表存在但不是列表类型时，返回一个错误。
+
+注意：在 Redis 2.4 版本以前的 RPUSH 命令，都只接受单个 value 值。
+
+语法
+redis Rpush 命令基本语法如下：
+
+redis 127.0.0.1:6379> RPUSH KEY_NAME VALUE1..VALUEN
+可用版本
+>= 1.0.0
+
+返回值
+执行 RPUSH 操作后，列表的长度。
+
+实例
+
+实例
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+127.0.0.1:6379~[db0]#> rpush mylist hello 
+0) rpush key mylist value hello success!
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1 
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | hello |
++-----+-------+
+| 2   | bar   |
++-----+-------+
+```
+
+
+##  Rpoplpush 命令用于移除列表的最后一个元素，并将该元素添加到另一个列表并返回。
+```bash
+语法
+redis Rpoplpush 命令基本语法如下：
+
+redis 127.0.0.1:6379> RPOPLPUSH SOURCE_KEY_NAME DESTINATION_KEY_NAME
+可用版本
+>= 1.0.0
+
+返回值
+被弹出的元素。
+
+实例
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1 
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | hello |
++-----+-------+
+| 2   | bar   |
++-----+-------+
+127.0.0.1:6379~[db0]#> rpoplpush mylist myotherlist 
+RPOPLPUSH success value bar
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | hello |
++-----+-------+
+127.0.0.1:6379~[db0]#> lrange myotherlist 0 -1 
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | bar   |
++-----+-------+
+```
+
+
+##  Rpop 命令用于移除列表的最后一个元素，返回值为移除的元素。
+```bash
+语法
+redis Rpop 命令基本语法如下：
+
+redis 127.0.0.1:6379> RPOP KEY_NAME 
+可用版本
+>= 1.0.0
+
+返回值
+被移除的元素。
+
+当列表不存在时，返回 nil 。
+
+实例
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1 
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+| 2   | world |
++-----+-------+
+127.0.0.1:6379~[db0]#> rpop mylist
++----------+-------+
+| list_key | value |
++----------+-------+
+| mylist   | world |
++----------+-------+
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+```
+
+
+
+
+##  Ltrim 对一个列表进行修剪(trim)，就是说，让列表只保留指定区间内的元素，不在指定区间之内的元素都将被删除。
+```bash
+下标 0 表示列表的第一个元素，以 1 表示列表的第二个元素，以此类推。 你也可以使用负数下标，以 -1 表示列表的最后一个元素， -2 表示列表的倒数第二个元素，以此类推。
+
+语法
+redis Ltrim 命令基本语法如下：
+
+redis 127.0.0.1:6379> LTRIM KEY_NAME START STOP
+可用版本
+>= 1.0.0
+
+返回值
+命令执行成功时，返回 ok 。
+
+实例
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | bad   |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+| 2   | world |
++-----+-------+
+127.0.0.1:6379~[db0]#> ltrim mylist 1 -1 
+LTRIM success
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | bar   |
++-----+-------+
+| 1   | world |
++-----+-------+
+```
+
+
+
+## Lset 通过索引来设置元素的值。
+```bash
+当索引参数超出范围，或对一个空列表进行 LSET 时，返回一个错误。
+
+关于列表下标的更多信息，请参考 LINDEX 命令。
+
+语法
+redis Lset 命令基本语法如下：
+
+redis 127.0.0.1:6379> LSET KEY_NAME INDEX VALUE
+可用版本
+>= 1.0.0
+
+返回值
+操作成功返回 ok ，否则返回错误信息。
+
+实例
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+| 2   | world |
++-----+-------+
+127.0.0.1:6379~[db0]#> lset mylist 0 bad   
+LSET success
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | bad   |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+| 2   | world |
++-----+-------+
+```
+
+
+
+##   Lrem 根据参数 COUNT 的值，移除列表中与参数 VALUE 相等的元素。
+```bash
+COUNT 的值可以是以下几种：
+
+count > 0 : 从表头开始向表尾搜索，移除与 VALUE 相等的元素，数量为 COUNT 。
+count < 0 : 从表尾开始向表头搜索，移除与 VALUE 相等的元素，数量为 COUNT 的绝对值。
+count = 0 : 移除表中所有与 VALUE 相等的值。
+语法
+redis Lrem 命令基本语法如下：
+
+redis 127.0.0.1:6379> LREM key count VALUE
+可用版本
+>= 1.0.0
+
+返回值
+被移除元素的数量。 列表不存在时返回 0 。
+
+实例
+127.0.0.1:6379~[db0]#> rpush mylist hello
+ 0) rpush key mylist value hello success!
+127.0.0.1:6379~[db0]#> rpush mylist hello
+ 0) rpush key mylist value hello success!
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1 
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | hello |
++-----+-------+
+| 2   | bar   |
++-----+-------+
+| 3   | world |
++-----+-------+
+| 4   | hello |
++-----+-------+
+127.0.0.1:6379~[db0]#> lrem mylist -2 hello   
++--------+------------+
+| key    | lrem_count |
++--------+------------+
+| mylist | 2          |
++--------+------------+
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1   
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | hello |
++-----+-------+
+| 1   | bar   |
++-----+-------+
+| 2   | world |
++-----+-------+
+```
+
+
+
+
+##  Brpoplpush 命令从列表中取出最后一个元素，并插入到另外一个列表的头部； 
+如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止。
+```bash
+语法
+redis Brpoplpush 命令基本语法如下：
+
+redis 127.0.0.1:6379> BRPOPLPUSH LIST1 ANOTHER_LIST TIMEOUT 
+可用版本
+>= 2.0.0
+
+返回值
+假如在指定时间内没有任何元素被弹出，则返回一个 nil 和等待时长。 反之，返回一个
+含有两个元素的列表，第一个元素是被弹出元素的值，第二个元素是等待时长。
+
+实例
+127.0.0.1:6379~[db0]#> brpoplpush mylist mylist_bak 10
++----------+-------+
+| list_key | value |       
++----------+-------+       
+| mylist   | test1 |       
++----------+-------+       
+127.0.0.1:6379~[db0]#> exists mylist_bak
+true
+127.0.0.1:6379~[db0]#> lrange mylist_bak 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | test1 |
++-----+-------+
+```
+
+
+
+##  Lpushx 将一个值插入到已存在的列表头部，列表不存在时操作无效。
+```bash
+语法
+redis Lpushx 命令基本语法如下：
+
+redis 127.0.0.1:6379> LPUSHX KEY_NAME VALUE1.. VALUEN
+可用版本
+>= 2.2.0
+
+返回值
+LPUSHX 命令执行之后，列表的长度。
+
+实例
+127.0.0.1:6379~[db0]#> lpushx mylist bar
+0) lpushx key mylist value bar success!
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | bar   |
++-----+-------+
+| 1   | world |
++-----+-------+
+| 2   | hello |
++-----+-------+
+```
+
+
+## Lpop 命令用于移除并返回列表的第一个元素。
+```bash
+语法
+redis Lpop 命令基本语法如下：
+
+redis 127.0.0.1:6379> Lpop KEY_NAME 
+可用版本
+>= 1.0.0
+
+返回值
+列表的第一个元素。 当列表 key 不存在时，返回 nil 。
+
+实例
+127.0.0.1:6379~[db0]#> lpop mylist
++----------+-------+
+| list_key | value |
++----------+-------+
+| mylist   | There |
++----------+-------+
+```
+
+
+
+
+##  Llen 命令用于返回列表的长度。 如果列表 key 不存在，则 key 被解释为一个空列表，返回 0 。 如果 key 不是列表类型，返回一个错误。
+```bash
+语法
+redis Llen 命令基本语法如下：
+
+redis 127.0.0.1:6379> LLEN KEY_NAME 
+可用版本
+>= 1.0.0
+
+返回值
+列表的长度。
+
+实例
+127.0.0.1:6379~[db0]#> llen mylist
++--------+--------+
+| key    | length |
++--------+--------+
+| mylist | 8      |
++--------+--------+ 
+```
+ 
+
+##   Linsert 命令用于在列表的元素前或者后插入元素。当指定元素不存在于列表中时，不执行任何操作。
+```bash
+当列表不存在时，被视为空列表，不执行任何操作。
+
+如果 key 不是列表类型，返回一个错误。
+
+语法
+redis Linsert 命令基本语法如下：
+
+LINSERT key BEFORE|AFTER pivot value
+将值 value 插入到列表 key 当中，位于值 pivot 之前或之后。
+
+可用版本
+>= 1.0.0
+
+返回值
+如果命令执行成功，返回插入操作完成之后，列表的长度。 如果没有找到指定元素 ，返回 -1 。 如果 key 不存在或为空列表，返回 0 。
+
+实例
+127.0.0.1:6379~[db0]#> linsert mylist before world There 
+LINSERT success
++--------+--------+
+| key    | length |
++--------+--------+
+| mylist | 8      |
++--------+--------+
+127.0.0.1:6379~[db0]#> lrange mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | There |
++-----+-------+
+| 1   | world |
++-----+-------+
+| 2   | hello |
++-----+-------+ 
+```
+
+
+## Lindex 命令用于通过索引获取列表中的元素。你也可以使用负数下标，以 -1 表示列表的最后一个元素， -2 表示列表的倒数第二个元素，以此类推。
+```bash
+语法
+redis Lindex 命令基本语法如下：
+
+redis 127.0.0.1:6379> LINDEX KEY_NAME INDEX_POSITION 
+可用版本
+>= 1.0.0
+
+返回值
+列表中下标为指定索引值的元素。 如果指定索引值不在列表的区间范围内，返回 nil 。
+
+实例
+127.0.0.1:6379~[db0]#> lindex mylist -1
++--------+-------+-------+
+| key    | index | value |
++--------+-------+-------+
+| mylist | -1    | test1 |
++--------+-------+-------+
+```
+
+
+##  Brpop 命令移出并获取列表的最后一个元素， 如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止。
+```bash
+语法
+redis Brpop 命令基本语法如下：
+
+redis 127.0.0.1:6379> BRPOP LIST1 LIST2 .. LISTN TIMEOUT 
+可用版本
+>= 2.0.0
+
+返回值
+假如在指定时间内没有任何元素被弹出，则返回一个 nil 和等待时长。 反之，返回一个含有两个元素的列表，第一个元素是被弹出元素所属的 key ，第二个元素是被弹出元素的值。
+
+实例
+127.0.0.1:6379~[db0]#> brpop mylist 10
++----------+-------+
+| list_key | value |
++----------+-------+
+| mylist   | test6 |
++----------+-------+
+```
+
+## Blpop 命令移出并获取列表的第一个元素， 如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止。
+
+语法
+redis Blpop 命令基本语法如下：
+
+redis 127.0.0.1:6379> BLPOP LIST1 LIST2 .. LISTN TIMEOUT
+可用版本
+>= 2.0.0
+
+返回值
+如果列表为空，返回一个 nil 。 否则，返回一个含有两个元素的列表，第一个元素是被弹出元素所属的 key ，第二个元素是被弹出元素的值。
+
+实例
+127.0.0.1:6379~[db0]#> blpop mylist 10
++----------+-------+
+| list_key | value |
++----------+-------+
+| mylist   | test6 |
++----------+-------+
+```
+
+
+
+##  Lrange 返回列表中指定区间内的元素，区间以偏移量 START 和 END 指定。 其中 0 表示列表的第一个元素
+ 1 表示列表的第二个元素，以此类推。 你也可以使用负数下标，以 -1 表示列表的最后一个元素， -2 表示列表的倒数第二个元素，以此类推。
+```bash
+语法
+redis Lrange 命令基本语法如下：
+
+redis 127.0.0.1:6379> LRANGE KEY_NAME START END
+可用版本
+>= 1.0.0
+
+返回值
+一个列表，包含指定区间内的元素。
+
+实例
+127.0.0.1:6379~[db0]#> lpush mylist test1 test2 test3 tes4 test5 test6
+0) lpush key mylist value test1 success!
+1) lpush key mylist value test2 success!
+2) lpush key mylist value test3 success!
+3) lpush key mylist value tes4 success! 
+4) lpush key mylist value test5 success!
+5) lpush key mylist value test6 success!
+127.0.0.1:6379~[db0]#> LRANGE mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | test6 |
++-----+-------+
+| 1   | test5 |
++-----+-------+
+| 2   | tes4  |
++-----+-------+
+| 3   | test3 |
++-----+-------+
+| 4   | test2 |
++-----+-------+
+| 5   | test1 |
++-----+-------+
+```
+
+
+## Lpush 命令将一个或多个值插入到列表头部。 如果 key 不存在，一个空列表会被创建并执行 LPUSH 操作。 当 key 存在但不是列表类型时，返回一个错误。
+```bash
+注意：在Redis 2.4版本以前的 LPUSH 命令，都只接受单个 value 值。
+
+语法
+redis Lpush 命令基本语法如下：
+
+redis 127.0.0.1:6379> LPUSH KEY_NAME VALUE1.. VALUEN
+可用版本
+>= 1.0.0
+
+返回值
+执行 LPUSH 命令后，列表的长度。
+
+实例
+127.0.0.1:6379~[db0]#> lpush mylist test1 test2 test3 tes4 test5 test6
+0) lpush key mylist value test1 success!
+1) lpush key mylist value test2 success!
+2) lpush key mylist value test3 success!
+3) lpush key mylist value tes4 success! 
+4) lpush key mylist value test5 success!
+5) lpush key mylist value test6 success!
+127.0.0.1:6379~[db0]#> LRANGE mylist 0 -1
++-----+-------+
+| num | value |
++-----+-------+
+| 0   | test6 |
++-----+-------+
+| 1   | test5 |
++-----+-------+
+| 2   | tes4  |
++-----+-------+
+| 3   | test3 |
++-----+-------+
+| 4   | test2 |
++-----+-------+
+| 5   | test1 |
++-----+-------+
+```

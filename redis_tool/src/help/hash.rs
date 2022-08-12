@@ -39,7 +39,30 @@ count - 指定从数据集里返回多少元素，默认值为 10 。
 
 实例
 127.0.0.1:6379~[db0]#> hscan mykey 0 match 10
-hscan->['0']
+127.0.0.1:6379~[db0]#> hset hashset a hello
+hset hash key hashset field a success (^v^)
+127.0.0.1:6379~[db0]#> hset hashset b world 
+hset hash key hashset field b success (^v^)
+127.0.0.1:6379~[db0]#> hgetall hashset
++-------+-------+
+| field | value |
++-------+-------+
+| b     | world |
++-------+-------+
+| a     | hello |
++-------+-------+
+127.0.0.1:6379~[db0]#> hscan hashset 0 match *
++--------+-------------+
+| number | hscan-value |
++--------+-------------+
+| 0      | a           |
++--------+-------------+
+| 1      | hello       |
++--------+-------------+
+| 2      | b           |
++--------+-------------+
+| 3      | world       |
++--------+-------------+
         "
         )
     }
