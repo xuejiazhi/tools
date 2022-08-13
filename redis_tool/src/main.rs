@@ -155,7 +155,7 @@ impl RedisParams {
 
 fn parse_args(host: &mut String, port: &mut String, auth: &mut String) {
     let sc = StrParse::new();
-    sc.to_string(host, "-h", "10.161.55.194");
+    sc.to_string(host, "-h", "127.0.0。1");
     sc.to_string(port, "-p", "6379");
     sc.to_string(auth, "-a", "");
 }
