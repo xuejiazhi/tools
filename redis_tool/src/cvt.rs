@@ -1247,7 +1247,7 @@ impl Cvt {
 
             //[ZCARD]
             "zcard" => {
-                if !judgement_equal(cmd_length, 4, "ZCARD") {
+                if !judgement_equal(cmd_length, 2, "ZCARD") {
                     return;
                 };
                 unsafe { self.zcard(Vec::from_iter(args.iter().map(String::as_str))) }
@@ -1381,6 +1381,20 @@ impl Cvt {
                 unsafe { self.zscan(Vec::from_iter(args.iter().map(String::as_str))) }
             }
 
+            //ZREVRANK
+            "zrevrank" => {
+                if !judgement_equal(cmd_length, 3, "ZREVRANK") {
+                    return;
+                };
+                unsafe { self.zrevrank(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
+
+            "zrevrangebyscore" => {
+                if !judgement_than(cmd_length, 4, "ZREVRANGEBYSCORE") {
+                    return;
+                };
+                unsafe { self.zrevrangebyscore(Vec::from_iter(args.iter().map(String::as_str))) }
+            }
             _ => {
                 if usecmds.len() == 0 {
                     println!("")

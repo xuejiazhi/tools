@@ -5,27 +5,58 @@ use crate::{cmd as cvt_cmd, cmd::set::Cmd, cvt};
 
 pub trait SortSet {
     //SORTSET
-    unsafe fn zscan(&self, args: Vec<&str>);
-    unsafe fn zunionstore(&self, args: Vec<&str>);
-    unsafe fn zscore(&self, args: Vec<&str>);
-    unsafe fn zrevrange(&self, args: Vec<&str>);
-    unsafe fn zremrangebyscore(&self, args: Vec<&str>);
-    unsafe fn zremrangebyrank(&self, args: Vec<&str>);
-    unsafe fn zremrangebylex(&self, args: Vec<&str>);
-    unsafe fn zrem(&self, args: Vec<&str>);
-    unsafe fn zrank(&self, args: Vec<&str>);
-    unsafe fn zrangebyscore(&self, args: Vec<&str>);
-    unsafe fn zrangebylex(&self, args: Vec<&str>);
-    unsafe fn zrange(&self, args: Vec<&str>);
-    unsafe fn zlexcount(&self, args: Vec<&str>);
-    unsafe fn zinterstore(&self, args: Vec<&str>);
-    unsafe fn zincrby(&self, args: Vec<&str>);
-    unsafe fn zcount(&self, args: Vec<&str>);
-    unsafe fn zcard(&self, args: Vec<&str>);
+    unsafe fn zscan(&self, args: Vec<&str>);  //ok
+    unsafe fn zunionstore(&self, args: Vec<&str>); //
+    unsafe fn zscore(&self, args: Vec<&str>); //
+    unsafe fn zrevrange(&self, args: Vec<&str>); //ok
+    unsafe fn zremrangebyscore(&self, args: Vec<&str>); //ok
+    unsafe fn zremrangebyrank(&self, args: Vec<&str>); //ok
+    unsafe fn zremrangebylex(&self, args: Vec<&str>); //ok
+    unsafe fn zrem(&self, args: Vec<&str>); //ok
+    unsafe fn zrank(&self, args: Vec<&str>); //ok
+    unsafe fn zrangebyscore(&self, args: Vec<&str>); //ok
+    unsafe fn zrangebylex(&self, args: Vec<&str>); //ok
+    unsafe fn zrange(&self, args: Vec<&str>);  //ok
+    unsafe fn zlexcount(&self, args: Vec<&str>); //ok
+    unsafe fn zinterstore(&self, args: Vec<&str>); //ok
+    unsafe fn zincrby(&self, args: Vec<&str>); //ok
+    unsafe fn zcount(&self, args: Vec<&str>); //ok
+    unsafe fn zcard(&self, args: Vec<&str>); //ok
     unsafe fn zadd(&self, args: Vec<&str>);
+
+    unsafe fn zrevrangebyscore(&self,args: Vec<&str>);
+    unsafe fn zrevrank(&self,args: Vec<&str>);
 }
 
 impl SortSet for cvt::Cvt {
+    unsafe fn zrevrangebyscore(&self,args: Vec<&str>){
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<Vec<String>>("ZREVRANGEBYSCORE", args) {
+            Ok(v) => {
+                let mut header: Vec<String> = Vec::with_capacity(1);
+                header.push("zrevrangebyscore-member".to_string());
+                let mut data: Vec<Vec<String>> = Vec::new();
+                for i in 0..v.len() {
+                    let mut son_data = Vec::with_capacity(1);
+                    son_data.push(v[i].to_string());
+                    data.push(son_data);
+                }
+                cvt_cmd::set::SetCMD {}.l_pub_k_mv(header, data);
+            }
+            Err(error) => println!("ZREVRANGEBYSCORE error {}", error),
+        }
+    }
+
+    unsafe fn zrevrank(&self,args: Vec<&str>){
+        let c = &mut *self.clients; // redis client
+        match c.run_command::<i32>("ZREVRANK", args) {
+            Ok(v) => {
+                println!("ZREVRANK integer ({})", v);
+            }
+            Err(error) => println!("ZREVRANK error {}", error),
+        }
+    }
+
     unsafe fn zscan(&self, args: Vec<&str>) {
         let c = &mut *self.clients; // redis client
         match c.run_command::<Vec<Vec<String>>>("ZSCAN", args) {
@@ -204,7 +235,7 @@ impl SortSet for cvt::Cvt {
 
     unsafe fn zinterstore(&self, args: Vec<&str>) {
         let c = &mut *self.clients; // redis client
-        match c.run_command::<String>("ZINTERSTORE", args) {
+        match c.run_command::<i32>("ZINTERSTORE", args) {
             Ok(v) => {
                 println!("ZINTERSTORE integer ({})", v);
             }

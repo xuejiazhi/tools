@@ -139,6 +139,8 @@ impl Route {
                         "zcount" => SetSortHelp {}.help_zcount(),
                         "zcard" => SetSortHelp {}.help_zcard(),
                         "zadd" => SetSortHelp {}.help_zadd(),
+                        "zrevrangebyscore"=>SetSortHelp{}.help_zrevrangebyscore(),
+                        "zrevrank"=>SetSortHelp{}.help_zrevrank(),
 
                         _ => {}
                     }
