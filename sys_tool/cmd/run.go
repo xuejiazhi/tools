@@ -17,6 +17,10 @@ var Ps = &cobra.Command{
 	Long:  "show Detail Memory Information",
 	Run: func(cmd *cobra.Command, args []string) {
 		s := new(opt.SysInfo)
+		//get host
+		if o, _ := cmd.Flags().GetBool("host"); o {
+			s.ShowHost()
+		}
 		//get memory
 		if m, _ := cmd.Flags().GetBool("memory"); m {
 			s.ShowMemory(judgePsMemoryArgs(args))
@@ -29,14 +33,20 @@ var Ps = &cobra.Command{
 		if d, _ := cmd.Flags().GetBool("disk"); d {
 			s.ShowDisk()
 		}
+
+		if a, _ := cmd.Flags().GetBool("all"); a {
+			s.ShowAll()
+		}
 	},
 }
 
 func addPsFlags() {
 	//定义ps flags
+	Ps.Flags().BoolVarP(&define.HostRp, "host", "o", false, "show host information")
 	Ps.Flags().BoolVarP(&define.MemoryRp, "memory", "m", false, "show memory information")
 	Ps.Flags().BoolVarP(&define.CpuRp, "cpu", "c", false, "show cpu information")
 	Ps.Flags().BoolVarP(&define.DiskRp, "disk", "d", false, "show disk information")
+	Ps.Flags().BoolVarP(&define.DiskRp, "all", "a", false, "show host memory cpu disk information")
 }
 
 func judgePsMemoryArgs(args []string) string {

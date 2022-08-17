@@ -1,6 +1,7 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 )
@@ -35,4 +36,22 @@ func InSlice(haystack interface{}, needle interface{}) bool {
 		return false
 	}
 	return false
+}
+
+func Json2Map(val string) (map[string]interface{}, error) {
+	var data map[string]interface{}
+	if err := json.Unmarshal([]byte(val), &data); err == nil {
+		return data, nil
+	} else {
+		return data, err
+	}
+}
+
+func Json2Array(val string) ([]interface{}, error) {
+	var data []interface{}
+	if err := json.Unmarshal([]byte(val), &data); err == nil {
+		return data, nil
+	} else {
+		return data, err
+	}
 }
