@@ -5,9 +5,9 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
-	"sys_tool/cmd/define"
-	"sys_tool/cmd/opt"
-	"sys_tool/cmd/util"
+	"tool/cmd/define"
+	"tool/cmd/opt"
+	"tool/cmd/util"
 )
 
 var (

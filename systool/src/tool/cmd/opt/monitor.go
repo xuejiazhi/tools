@@ -5,9 +5,9 @@ import (
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/spf13/cast"
-	"sys_tool/cmd/sdk/goPrint"
-	"sys_tool/cmd/util"
 	"time"
+	"tool/cmd/sdk/goPrint"
+	"tool/cmd/util"
 )
 
 type Monitor struct {

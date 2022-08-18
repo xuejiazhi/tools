@@ -1,6 +1,6 @@
 package main
 
-import "sys_tool/cmd"
+import "tool/cmd"
 
 func main() {
 	cmd.Run()
