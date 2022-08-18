@@ -4,6 +4,7 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< HEAD
     <list default="true" id="f1e9e18b-d6ba-4e27-8034-261af48be9f0" name="Changes" comment="Changes">
       <change afterPath="$PROJECT_DIR$/cmd/opt/monitor.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/cmd/sdk/goPrint/Bar.go" afterDir="false" />
@@ -60,6 +61,10 @@
       <change beforePath="$PROJECT_DIR$/vendor/github.com/rivo/uniseg/wordproperties.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/vendor/github.com/rivo/uniseg/wordrules.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/vendor/modules.txt" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/modules.txt" afterDir="false" />
+=======
+    <list default="true" id="f1e9e18b-d6ba-4e27-8034-261af48be9f0" name="Changes" comment="change">
+      <change afterPath="$PROJECT_DIR$/main.exe" afterDir="false" />
+>>>>>>> a303fe94146937693853096762aa104034d0c51e
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -76,18 +81,13 @@
   <component name="GOROOT" url="file://C:/go1.19" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GoDepProject">
     <integration-enabled>true</integration-enabled>
   </component>
-  <component name="GoLibraries">
-    <option name="useGoPathFromSystemEnvironment" value="false" />
-  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
-  </component>
-  <component name="ProblemsViewState">
-    <option name="selectedTabId" value="ProjectErrors" />
   </component>
   <component name="ProjectId" id="2DTMDTwxSwWEkJLIx6vpCSsashO" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -112,14 +112,15 @@
     "RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "WebServerToolWindowFactoryState": "false",
-    "configurable..is.expanded": "true",
-    "configurable.GoLibrariesConfigurable.is.expanded": "true",
     "go.import.settings.migrated": "true",
+<<<<<<< HEAD
     "go.sdk.automatically.set": "true",
     "last_opened_file_path": "F:/rust/project/tools/sys_tool/cmd/sdk",
+=======
+    "last_opened_file_path": "F:/rust/project/tools/sys_tool",
+>>>>>>> a303fe94146937693853096762aa104034d0c51e
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "go.vgo"
   }
 }]]></component>
@@ -138,8 +139,13 @@
     <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="sys_tool" />
       <working_directory value="$PROJECT_DIR$" />
+<<<<<<< HEAD
       <go_parameters value="-i" />
       <kind value="FILE" />
+=======
+      <kind value="PACKAGE" />
+      <package value="sys_tool" />
+>>>>>>> a303fe94146937693853096762aa104034d0c51e
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <method v="2" />
@@ -148,7 +154,11 @@
       <module name="sys_tool" />
       <working_directory value="$PROJECT_DIR$" />
       <useCustomBuildTags value="true" />
+<<<<<<< HEAD
       <parameters value="monitor " />
+=======
+      <parameters value="ps -m" />
+>>>>>>> a303fe94146937693853096762aa104034d0c51e
       <kind value="PACKAGE" />
       <package value="sys_tool" />
       <directory value="$PROJECT_DIR$" />
@@ -158,8 +168,13 @@
     <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
       <module name="sys_tool" />
       <working_directory value="$PROJECT_DIR$" />
+<<<<<<< HEAD
       <go_parameters value="-i" />
       <kind value="DIRECTORY" />
+=======
+      <kind value="DIRECTORY" />
+      <package value="sys_tool" />
+>>>>>>> a303fe94146937693853096762aa104034d0c51e
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
@@ -182,6 +197,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Go Build.go build sys_tool" />
+<<<<<<< HEAD
+=======
+        <item itemvalue="Go Test.go test sys_tool" />
+>>>>>>> a303fe94146937693853096762aa104034d0c51e
       </list>
     </recent_temporary>
   </component>
@@ -202,11 +221,13 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="change" />
+    <option name="LAST_COMMIT_MESSAGE" value="change" />
   </component>
   <component name="VgoProject">
     <environment>
       <map>
-        <entry key="GOPROXY" value="https://goproxy.cn" />
+        <entry key="GOPROXY" value="direct" />
         <entry key="GOSUMDB" value="off" />
       </map>
     </environment>
