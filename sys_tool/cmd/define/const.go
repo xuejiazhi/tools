@@ -1,6 +1,7 @@
 package define
 
 var (
+	AvgRp    bool
 	HostRp   bool
 	MemoryRp bool
 	CpuRp    bool

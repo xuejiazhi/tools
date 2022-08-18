@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 )
 
-// 字节的单位转换 保留两位小数
+// FormatSize 字节的单位转换 保留两位小数
 func FormatSize(size uint64, flag string) (reSize string) {
 	switch flag {
 	case "k": //return KB
@@ -21,6 +22,28 @@ func FormatSize(size uint64, flag string) (reSize string) {
 		return fmt.Sprintf("%.2fB", float64(size)/float64(1))
 	}
 	return
+}
+
+// FormatSize 字节的单位转换 保留两位小数
+func FormatSizeFloat(size uint64, flag string) (reSize float64) {
+	switch flag {
+	case "k": //return KB
+		return Decimal(float64(size) / float64(1024))
+	case "m": //return MB
+		return Decimal(float64(size) / float64(1024*1024))
+	case "g":
+		return Decimal(float64(size) / float64(1024*1024*1024))
+	case "b":
+		return Decimal(float64(size) / float64(1))
+	default:
+		return Decimal(float64(size) / float64(1))
+	}
+	return
+}
+
+func Decimal(value float64) float64 {
+	value, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", value), 64)
+	return value
 }
 
 func InSlice(haystack interface{}, needle interface{}) bool {

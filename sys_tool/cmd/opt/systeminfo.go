@@ -5,6 +5,7 @@ import (
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
+	"github.com/shirou/gopsutil/v3/load"
 	"github.com/shirou/gopsutil/v3/mem"
 	"sys_tool/cmd/define"
 	"sys_tool/cmd/util"
@@ -14,7 +15,6 @@ type SysInfo struct {
 }
 
 func (s *SysInfo) ShowHost() {
-	fmt.Println("##################  Host Information ########################")
 	hostInfo, _ := host.Info()
 	headers := []interface{}{"#",
 		"hostname",
@@ -44,12 +44,10 @@ func (s *SysInfo) ShowHost() {
 		hostInfo.KernelArch,
 		hostInfo.HostID,
 	})
-	util.ShowTable(headers, data)
+	util.ShowTable("#!--  Host Information", headers, data)
 }
 
 func (s *SysInfo) ShowMemory(flag string) {
-	fmt.Println("##################  Memory Information ########################")
-	//util.ShowTable()
 	headers := []interface{}{"#", "total", "used", "free", "shared", "buff", "cache", "available"}
 	var data [][]interface{}
 	//virtual Memory
@@ -73,11 +71,10 @@ func (s *SysInfo) ShowMemory(flag string) {
 	smData = append(smData, util.FormatSize(sm.Free, flag))
 	//virtualMemory := mem
 	data = append(data, smData)
-	util.ShowTable(headers, data)
+	util.ShowTable("#!--  Memory Information", headers, data)
 }
 
 func (s *SysInfo) ShowCpu() {
-	fmt.Println("##################  Cpu Information ########################")
 	if cpuInfos, err := cpu.Info(); len(cpuInfos) > 0 && err == nil {
 		headers := []interface{}{"#",
 			"ModelName",
@@ -109,7 +106,7 @@ func (s *SysInfo) ShowCpu() {
 			cpuInfos[0].CacheSize,
 			cpuInfos[0].Microcode,
 		})
-		util.ShowTable(headers, data)
+		util.ShowTable("#!--  Cpu Information", headers, data)
 	} else {
 		fmt.Println(define.GetCpuInfoErrorMsg, err)
 		return
@@ -117,7 +114,6 @@ func (s *SysInfo) ShowCpu() {
 }
 
 func (s *SysInfo) ShowDisk() {
-	fmt.Println("##################  Disk Information ########################")
 	if parts, err := disk.Partitions(true); err == nil {
 		headers := []interface{}{"#",
 			"MountPoint",
@@ -137,7 +133,6 @@ func (s *SysInfo) ShowDisk() {
 		//IO 状态统计
 		ioStat, _ := disk.IOCounters()
 		for _, part := range parts {
-			//ioStatInfo, _ := util.Json2Map(cast.ToString(ioStat[part.Device]))
 			data = append(data, []interface{}{
 				part.Device,
 				part.Mountpoint,
@@ -155,11 +150,16 @@ func (s *SysInfo) ShowDisk() {
 			})
 
 		}
-		util.ShowTable(headers, data)
+		util.ShowTable("#!-- Disk Information", headers, data)
 	} else {
 		fmt.Println(define.GetDiskInfoErrorMsg, err)
 		return
 	}
+}
+
+func (s *SysInfo) ShowLoadAvg() {
+	info, _ := load.Avg()
+	fmt.Printf("%v\n", info)
 }
 
 func (s *SysInfo) ShowAll() {
