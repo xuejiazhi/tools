@@ -153,3 +153,13 @@ func (s *SysInfo) ShowAll() {
 	s.ShowCpu()
 	s.ShowDisk()
 }
+
+func (s *SysInfo) ShowTest() {
+	vm, _ := mem.VirtualMemory()
+	var data = util.MonitorData{
+		vm,
+	}
+
+	fmt.Println(data)
+	util.ShowAllTable(&data)
+}

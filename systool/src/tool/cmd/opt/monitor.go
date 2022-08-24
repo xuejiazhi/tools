@@ -23,8 +23,9 @@ func (m *Monitor) MonitorPercent() {
 		fmt.Print("\033c")
 		//m.GetMemUsePercent(memInfo)
 		//m.GetSwapUsePercent(swapInfo)
-		new(SysInfo).ShowMemory("g")
-		time.Sleep(1 * time.Second)
+		//new(SysInfo).ShowMemory("g")
+		new(SysInfo).ShowTest()
+		time.Sleep(3 * time.Second)
 	}
 }
 
