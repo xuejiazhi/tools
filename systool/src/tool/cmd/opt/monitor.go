@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cast"
 	"time"
 	"tool/cmd/sdk/goPrint"
-	"tool/cmd/util"
 )
 
 type Monitor struct {
@@ -19,37 +18,38 @@ type Monitor struct {
 // MonitorPercent  监控内存
 func (m *Monitor) MonitorPercent() {
 	for {
-		memInfo, _ := mem.VirtualMemory()
-		swapInfo, _ := mem.SwapMemory()
+		//memInfo, _ := mem.VirtualMemory()
+		//swapInfo, _ := mem.SwapMemory()
 		fmt.Print("\033c")
-		fmt.Print("【Memory】\n")
-		m.GetMemUsePercent(memInfo)
-		m.GetSwapUsePercent(swapInfo)
+		//m.GetMemUsePercent(memInfo)
+		//m.GetSwapUsePercent(swapInfo)
 		new(SysInfo).ShowMemory("g")
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 	}
 }
 
 func (m *Monitor) GetMemUsePercent(memInfo *mem.VirtualMemoryStat) {
-	m.MemBar = goPrint.NewBar(100)
-	m.MemBar.SetNotice("内存使用率：")
+	m.MemBar = goPrint.NewBar(20)
+	//m.MemBar.SetNotice("内存使用率：")
 	m.MemBar.SetRatioColor(1)
 	m.MemBar.SetGraph(">")
-	m.MemBar.SetRatioSuffix("GB")
-	m.MemBar.SetRatioTotalData(util.FormatSizeFloat(memInfo.Total, "g"))
-	m.MemBar.SetRatioUseData(util.FormatSizeFloat(memInfo.Used, "g"))
-	m.MemBar.PrintBar(cast.ToInt(memInfo.UsedPercent))
+	//m.SwapBar.HideRatio()
+	//m.MemBar.SetRatioSuffix("GB")
+	//m.MemBar.SetRatioTotalData(util.FormatSizeFloat(memInfo.Total, "g"))
+	//m.MemBar.SetRatioUseData(util.FormatSizeFloat(memInfo.Used, "g"))
+	m.MemBar.PrintBar(cast.ToInt(memInfo.UsedPercent) / 5)
 }
 
 func (m *Monitor) GetSwapUsePercent(swapInfo *mem.SwapMemoryStat) {
-	m.SwapBar = goPrint.NewBar(100)
-	m.SwapBar.SetNotice("Swap使用率：")
+	m.SwapBar = goPrint.NewBar(20)
+	//m.SwapBar.SetNotice("Swap使用率：")
 	m.SwapBar.SetRatioColor(1)
 	m.SwapBar.SetGraph(">")
-	m.SwapBar.SetRatioSuffix("GB")
-	m.SwapBar.SetRatioTotalData(util.FormatSizeFloat(swapInfo.Total, "g"))
-	m.SwapBar.SetRatioUseData(util.FormatSizeFloat(swapInfo.Used, "g"))
-	m.SwapBar.PrintBar(cast.ToInt(swapInfo.UsedPercent))
+	//m.SwapBar.HideRatio()
+	//m.SwapBar.SetRatioSuffix("GB")
+	//m.SwapBar.SetRatioTotalData(util.FormatSizeFloat(swapInfo.Total, "g"))
+	//m.SwapBar.SetRatioUseData(util.FormatSizeFloat(swapInfo.Used, "g"))
+	m.SwapBar.PrintBar(cast.ToInt(swapInfo.UsedPercent) / 5)
 }
 func getDiskUsePercent() float64 {
 	parts, _ := disk.Partitions(true)

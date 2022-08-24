@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func (m *Bar) PrintBar(currValue int) {
+func (m *Bar) PrintBar(currValue int) string {
 	m.SetCurrentValue(currValue)
 	printStr := "\r" + m.NoticePrintString()
 	if m.isShowBar {
@@ -15,10 +15,11 @@ func (m *Bar) PrintBar(currValue int) {
 	if m.isShowPercent {
 		printStr += m.PercentPrintString()
 	}
-	if m.isShowRatio {
-		printStr += m.RatioPrintString()
-	}
-	fmt.Print(printStr + "\n")
+	//if m.isShowRatio {
+	//	printStr += m.RatioPrintString()
+	//}
+	return printStr
+	//fmt.Print(printStr + "\n")
 }
 
 func (m *Bar) NoticePrintString() string {

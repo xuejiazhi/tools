@@ -7,7 +7,9 @@ import (
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/load"
 	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/spf13/cast"
 	"tool/cmd/define"
+	"tool/cmd/sdk/goPrint"
 	"tool/cmd/util"
 )
 
@@ -16,19 +18,6 @@ type SysInfo struct {
 
 func (s *SysInfo) ShowHost() {
 	hostInfo, _ := host.Info()
-	headers := []interface{}{"#",
-		"hostname",
-		"uptime",
-		"bootTime",
-		"procs",
-		"os",
-		"platform",
-		"platformFamily",
-		"platformVersion",
-		"kernelVersion",
-		"kernelArch",
-		"hostId",
-	}
 	var data [][]interface{}
 	data = append(data, []interface{}{
 		"Host:",
@@ -44,52 +33,62 @@ func (s *SysInfo) ShowHost() {
 		hostInfo.KernelArch,
 		hostInfo.HostID,
 	})
-	util.ShowTable("#!--  Host Information", headers, data)
+	util.ShowTable("#!--  Host Information", HostHeader, data)
 }
 
+// ShowMemory 显示内存的使用情况
 func (s *SysInfo) ShowMemory(flag string) {
-	headers := []interface{}{"#", "total", "used", "free", "shared", "buff", "cache", "available"}
+	//width := []int64{3, 10, 10, 10, 10, 10, 10, 10}
 	var data [][]interface{}
+	getMemoryList(flag, &data)
+	//util.ShowSimpleTable(headers, width, data)
+	util.ShowTable("#!--  Memory Information", MemoryHeader, data)
+}
+
+func getMemoryList(flag string, data *[][]interface{}) {
 	//virtual Memory
 	vm, _ := mem.VirtualMemory()
-	var vmData []interface{}
-	vmData = append(vmData, "Mem:")
-	vmData = append(vmData, util.FormatSize(vm.Total, flag))
-	vmData = append(vmData, util.FormatSize(vm.Used, flag))
-	vmData = append(vmData, util.FormatSize(vm.Free, flag))
-	vmData = append(vmData, util.FormatSize(vm.Shared, flag))
-	vmData = append(vmData, util.FormatSize(vm.Buffers, flag))
-	vmData = append(vmData, util.FormatSize(vm.Cached, flag))
-	vmData = append(vmData, util.FormatSize(vm.Available, flag))
-	data = append(data, vmData)
 	//Swap Memory
 	sm, _ := mem.SwapMemory()
-	var smData []interface{}
-	smData = append(smData, "Swap")
-	smData = append(smData, util.FormatSize(sm.Total, flag))
-	smData = append(smData, util.FormatSize(sm.Used, flag))
-	smData = append(smData, util.FormatSize(sm.Free, flag))
-	//virtualMemory := mem
-	data = append(data, smData)
-	util.ShowTable("#!--  Memory Information", headers, data)
+	//data
+	*data = append(*data,
+		//virtual memory
+		[]interface{}{
+			"Mem:",
+			util.FormatSize(vm.Total, flag),
+			util.FormatSize(vm.Used, flag),
+			util.FormatSize(vm.Free, flag),
+			util.FormatSize(vm.Shared, flag),
+			util.FormatSize(vm.Buffers, flag),
+			util.FormatSize(vm.Cached, flag),
+			util.FormatSize(vm.Available, flag),
+			getMemoPercent(vm.UsedPercent),
+		},
+		//swap memory
+		[]interface{}{
+			"Swap",
+			util.FormatSize(sm.Total, flag),
+			util.FormatSize(sm.Used, flag),
+			util.FormatSize(sm.Free, flag),
+			"",
+			"",
+			"",
+			"",
+			getMemoPercent(sm.UsedPercent),
+		})
+}
+
+func getMemoPercent(value float64) (grossbar string) {
+	memBar := goPrint.NewBar(20)
+	memBar.SetRatioColor(1)
+	//memBar.HideRatio()
+	memBar.SetGraph(">")
+	grossbar = memBar.PrintBar(cast.ToInt(value) / 5)
+	return
 }
 
 func (s *SysInfo) ShowCpu() {
 	if cpuInfos, err := cpu.Info(); len(cpuInfos) > 0 && err == nil {
-		headers := []interface{}{"#",
-			"ModelName",
-			"PhysicalID",
-			"CPU",
-			"VendorID",
-			"Family",
-			"Model",
-			"Stepping",
-			"CoreID",
-			"Cores",
-			"Mhz",
-			"CacheSize",
-			"Microcode",
-		}
 		var data [][]interface{}
 		data = append(data, []interface{}{
 			"Cpu:",
@@ -106,7 +105,7 @@ func (s *SysInfo) ShowCpu() {
 			cpuInfos[0].CacheSize,
 			cpuInfos[0].Microcode,
 		})
-		util.ShowTable("#!--  Cpu Information", headers, data)
+		util.ShowTable("#!--  Cpu Information", CpuHeader, data)
 	} else {
 		fmt.Println(define.GetCpuInfoErrorMsg, err)
 		return
@@ -115,20 +114,6 @@ func (s *SysInfo) ShowCpu() {
 
 func (s *SysInfo) ShowDisk() {
 	if parts, err := disk.Partitions(true); err == nil {
-		headers := []interface{}{"#",
-			"MountPoint",
-			"FsType",
-			"Opts",
-			"ReadCount",
-			"WriteCount",
-			"ReadBytes",
-			"WriteBytes",
-			"ReadTime",
-			"WriteTime",
-			"IoTime",
-			"SerialNumber",
-			"Label",
-		}
 		var data [][]interface{}
 		//IO 状态统计
 		ioStat, _ := disk.IOCounters()
@@ -150,7 +135,7 @@ func (s *SysInfo) ShowDisk() {
 			})
 
 		}
-		util.ShowTable("#!-- Disk Information", headers, data)
+		util.ShowTable("#!-- Disk Information", DiskHeader, data)
 	} else {
 		fmt.Println(define.GetDiskInfoErrorMsg, err)
 		return

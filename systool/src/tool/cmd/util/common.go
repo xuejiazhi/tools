@@ -5,38 +5,31 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 // FormatSize 字节的单位转换 保留两位小数
 func FormatSize(size uint64, flag string) (reSize string) {
-	switch flag {
-	case "k": //return KB
-		return fmt.Sprintf("%.2fKB", float64(size)/float64(1024))
-	case "m": //return MB
-		return fmt.Sprintf("%.2fMB", float64(size)/float64(1024*1024))
-	case "g":
-		return fmt.Sprintf("%.2fGB", float64(size)/float64(1024*1024*1024))
-	case "b":
-		return fmt.Sprintf("%.2fB", float64(size)/float64(1))
-	default:
-		return fmt.Sprintf("%.2fB", float64(size)/float64(1))
-	}
+	reSize = fmt.Sprintf("%.2f%sB",
+		FormatSizeFloat(size, flag),
+		strings.ToUpper(flag),
+	)
 	return
 }
 
-// FormatSize 字节的单位转换 保留两位小数
+// FormatSizeFloat  字节的单位转换 保留两位小数
 func FormatSizeFloat(size uint64, flag string) (reSize float64) {
-	switch flag {
-	case "k": //return KB
-		return Decimal(float64(size) / float64(1024))
-	case "m": //return MB
-		return Decimal(float64(size) / float64(1024*1024))
-	case "g":
-		return Decimal(float64(size) / float64(1024*1024*1024))
-	case "b":
-		return Decimal(float64(size) / float64(1))
-	default:
-		return Decimal(float64(size) / float64(1))
+	stepMap := map[string]float64{
+		"b": float64(1),
+		"k": float64(1024),
+		"m": float64(1024 * 1024),
+		"g": float64(1024 * 1024 * 1024),
+	}
+
+	if _, ok := stepMap[flag]; ok {
+		reSize = Decimal(float64(size) / stepMap[flag])
+	} else {
+		reSize = Decimal(float64(size) / float64(1))
 	}
 	return
 }
@@ -55,7 +48,6 @@ func InSlice(haystack interface{}, needle interface{}) bool {
 				return true
 			}
 		}
-
 		return false
 	}
 	return false

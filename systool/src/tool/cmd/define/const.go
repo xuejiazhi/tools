@@ -15,4 +15,5 @@ const (
 
 	GetCpuInfoErrorMsg  = "Get CPU Information Failed"
 	GetDiskInfoErrorMsg = "Get CPU Information Failed"
+	NoDataInTbErrorMsg  = "No data in table."
 )
