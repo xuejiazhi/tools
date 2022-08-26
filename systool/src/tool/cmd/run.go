@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/patrickmn/go-cache"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
+	"time"
 	"tool/cmd/define"
 	"tool/cmd/opt"
 	"tool/cmd/util"
@@ -99,4 +101,8 @@ func Run() {
 		fmt.Println(err.Error())
 		os.Exit(2)
 	}
+}
+
+func init() {
+	define.Cache = cache.New(30*time.Minute, 10*time.Minute)
 }

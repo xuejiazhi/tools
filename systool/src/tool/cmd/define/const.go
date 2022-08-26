@@ -1,13 +1,5 @@
 package define
 
-var (
-	AvgRp    bool
-	HostRp   bool
-	MemoryRp bool
-	CpuRp    bool
-	DiskRp   bool
-)
-
 const (
 	ParameterErrorMsg = "Command not implemented for that parameter." //参数错误
 
