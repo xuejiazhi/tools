@@ -3,7 +3,10 @@ package util
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"os/exec"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -39,6 +42,11 @@ func Decimal(value float64) float64 {
 	return value
 }
 
+func Decimal2(value float64) float64 {
+	value, _ = strconv.ParseFloat(fmt.Sprintf("%.2f", value), 64)
+	return value
+}
+
 func InSlice(haystack interface{}, needle interface{}) bool {
 	sVal := reflect.ValueOf(haystack)
 	kind := sVal.Kind()
@@ -69,4 +77,40 @@ func Json2Array(val string) ([]interface{}, error) {
 	} else {
 		return data, err
 	}
+}
+
+func ClearMonitor() {
+	if runtime.GOOS == "windows" {
+		cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+
+	} else {
+		cmd := exec.Command("clear") //Linux example, its tested
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+}
+
+func FillStr(str string, length int) (retStr string) {
+	retStr = str
+	for i := 0; i < length-len(str); i++ {
+		if i%2 == 0 {
+			retStr = " " + retStr
+		} else {
+			retStr = retStr + " "
+		}
+
+	}
+	return
+}
+
+func FillStrBuilder(str string, length int) (retStr string) {
+	var strBuiler strings.Builder
+	strBuiler.WriteString(str)
+	for i := 0; i < length-len(str); i++ {
+		strBuiler.WriteString(" ")
+	}
+	retStr = strBuiler.String()
+	return
 }

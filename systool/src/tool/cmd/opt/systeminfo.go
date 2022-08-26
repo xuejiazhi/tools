@@ -7,9 +7,7 @@ import (
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/load"
 	"github.com/shirou/gopsutil/v3/mem"
-	"github.com/spf13/cast"
 	"tool/cmd/define"
-	"tool/cmd/sdk/goPrint"
 	"tool/cmd/util"
 )
 
@@ -62,7 +60,7 @@ func getMemoryList(flag string, data *[][]interface{}) {
 			util.FormatSize(vm.Buffers, flag),
 			util.FormatSize(vm.Cached, flag),
 			util.FormatSize(vm.Available, flag),
-			getMemoPercent(vm.UsedPercent),
+			util.GetMemoPercent(vm.UsedPercent),
 		},
 		//swap memory
 		[]interface{}{
@@ -74,17 +72,8 @@ func getMemoryList(flag string, data *[][]interface{}) {
 			"",
 			"",
 			"",
-			getMemoPercent(sm.UsedPercent),
+			util.GetMemoPercent(sm.UsedPercent),
 		})
-}
-
-func getMemoPercent(value float64) (grossbar string) {
-	memBar := goPrint.NewBar(20)
-	memBar.SetRatioColor(1)
-	//memBar.HideRatio()
-	memBar.SetGraph(">")
-	grossbar = memBar.PrintBar(cast.ToInt(value) / 5)
-	return
 }
 
 func (s *SysInfo) ShowCpu() {

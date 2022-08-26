@@ -8,7 +8,7 @@ import (
 
 func (m *Bar) PrintBar(currValue int) string {
 	m.SetCurrentValue(currValue)
-	printStr := "\r" + m.NoticePrintString()
+	printStr := " " + m.NoticePrintString()
 	if m.isShowBar {
 		printStr += m.ProgressPrintString()
 	}

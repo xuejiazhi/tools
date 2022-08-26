@@ -1,6 +1,6 @@
 package goPrint
 
-const defaultCount = 50
+const defaultCount = 15
 
 type Bar struct {
 	totalValue         int
