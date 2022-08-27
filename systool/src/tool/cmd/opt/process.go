@@ -68,16 +68,7 @@ func (m *Monitor) setProcCommonData(proc *process.Process, procData *ProcessComm
 func GetTopMemStr(memlist []ProcessMemData) (memstr string) {
 	//set header
 	memstr = util.SetColor(
-		setLine(
-			[]LineDefine{
-				{Name: "pid"},
-				{Name: "user"},
-				{Name: "time", Length: 20},
-				{Name: "rss"},
-				{Name: "vms"},
-				{Name: "mem% "},
-				{Name: "command"},
-			}), util.LightSeaBlue, true, true)
+		setLine(ProcessHeader["mem"]), util.LightSeaBlue, true, true)
 
 	for _, cpuData := range memlist {
 		memstr = fmt.Sprintf("%s%s", memstr,
@@ -100,22 +91,7 @@ func GetTopMemStr(memlist []ProcessMemData) (memstr string) {
 func GetTopCpuStr(cpulist []ProcessCpuData) (cpustr string) {
 	//set header
 	cpustr = util.SetColor(
-		setLine(
-			[]LineDefine{
-				{Name: "pid"},
-				{Name: "user"},
-				{Name: "time", Length: 20},
-				{Name: "us"},
-				{Name: "sy"},
-				{Name: "idle"},
-				{Name: "ni"},
-				{Name: "iowait"},
-				{Name: "hi"},
-				{Name: "si"},
-				{Name: "st"},
-				{Name: "cpu% "},
-				{Name: "command"},
-			}), util.LightSeaBlue, true, true)
+		setLine(ProcessHeader["cpu"]), util.LightSeaBlue, true, true)
 
 	for _, cpuData := range cpulist {
 		cpustr = fmt.Sprintf("%s%s", cpustr,
@@ -147,6 +123,7 @@ func (m *Monitor) getProcessDataList(procCpuList *[]ProcessCpuData, procMemList 
 		if run, _ := p.IsRunning(); run {
 			//set proc common data
 			var procData ProcessCommData
+
 			//get common data
 			m.setProcCommonData(p, &procData)
 

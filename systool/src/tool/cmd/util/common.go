@@ -81,10 +81,10 @@ func Json2Array(val string) ([]interface{}, error) {
 
 func ClearMonitor() {
 	if runtime.GOOS == "windows" {
-		cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
-		cmd.Stdout = os.Stdout
-		cmd.Run()
-
+		//cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
+		//cmd.Stdout = os.Stdout
+		//cmd.Run()
+		fmt.Print("\033c")
 	} else {
 		cmd := exec.Command("clear") //Linux example, its tested
 		cmd.Stdout = os.Stdout

@@ -55,4 +55,31 @@ var (
 		"SerialNumber",
 		"Label",
 	}
+
+	ProcessHeader = map[string][]LineDefine{
+		"cpu": []LineDefine{
+			{Name: "pid"},
+			{Name: "user"},
+			{Name: "time", Length: 20},
+			{Name: "us"},
+			{Name: "sy"},
+			{Name: "idle"},
+			{Name: "ni"},
+			{Name: "iowait"},
+			{Name: "hi"},
+			{Name: "si"},
+			{Name: "st"},
+			{Name: "cpu% "},
+			{Name: "command"},
+		},
+		"mem": []LineDefine{
+			{Name: "pid"},
+			{Name: "user"},
+			{Name: "time", Length: 20},
+			{Name: "rss"},
+			{Name: "vms"},
+			{Name: "mem% "},
+			{Name: "command"},
+		},
+	}
 )

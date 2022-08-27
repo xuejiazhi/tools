@@ -41,10 +41,10 @@ var CpuSuffix = map[int]string{
 func (m *Monitor) MonitorPercent() {
 	for {
 		if atomic.LoadInt64(&define.FlagMonitor) == 0 {
-			fmt.Print("\033c")
+			util.ClearMonitor()
 		}
 		m.SniffMonitorTable()
-		time.Sleep(5 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 }
 
@@ -80,7 +80,7 @@ func (m *Monitor) SniffMonitorTable() {
 	//process cpu
 	procCpuTxt, procMemTxt := new(Monitor).GetProcess()
 	if atomic.LoadInt64(&define.FlagMonitor) > 0 {
-		fmt.Print("\033c")
+		util.ClearMonitor()
 	} else {
 		atomic.AddInt64(&define.FlagMonitor, 1)
 	}
