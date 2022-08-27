@@ -3,7 +3,9 @@ package opt
 import (
 	"fmt"
 	"github.com/shirou/gopsutil/v3/disk"
+	"sync/atomic"
 	"time"
+	"tool/cmd/define"
 	"tool/cmd/sdk/goPrint"
 	"tool/cmd/util"
 )
@@ -38,9 +40,11 @@ var CpuSuffix = map[int]string{
 // MonitorPercent  监控内存
 func (m *Monitor) MonitorPercent() {
 	for {
-		fmt.Print("\033c")
+		if atomic.LoadInt64(&define.FlagMonitor) == 0 {
+			fmt.Print("\033c")
+		}
 		m.SniffMonitorTable()
-		time.Sleep(3 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 }
 
@@ -73,7 +77,15 @@ func (m *Monitor) SniffMonitorTable() {
 	smTxt := GetMemStr(SwapMemory)
 	//CPU
 	cpuTxt := GetCpuStr()
-	fmt.Print(fmt.Sprintf("\r%s%s%s%s", loadTxt, cpuTxt, vmTxt, smTxt))
+	//process cpu
+	procCpuTxt, procMemTxt := new(Monitor).GetProcess()
+	if atomic.LoadInt64(&define.FlagMonitor) > 0 {
+		fmt.Print("\033c")
+	} else {
+		atomic.AddInt64(&define.FlagMonitor, 1)
+	}
+	value := fmt.Sprintf("\r%s%s%s%s%s%s", loadTxt, cpuTxt, procCpuTxt, vmTxt, smTxt, procMemTxt)
+	fmt.Print(value)
 }
 
 func setC(title, value string, spc int, danger ...bool) (reStr string) {

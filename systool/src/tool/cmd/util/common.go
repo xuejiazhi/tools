@@ -114,3 +114,11 @@ func FillStrBuilder(str string, length int) (retStr string) {
 	retStr = strBuiler.String()
 	return
 }
+
+func If[T any](condition bool, true, false T) interface{} {
+	if condition {
+		return true
+	} else {
+		return false
+	}
+}

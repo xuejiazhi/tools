@@ -11,5 +11,7 @@ var (
 )
 
 var (
-	Cache *cache.Cache
+	FlagMonitor   int64
+	DefaultLength = 12
+	Cache         *cache.Cache
 )
