@@ -1,30 +1,73 @@
+mod cmd;
 mod constrs;
+mod convert_test;
 mod cvt;
+mod util;
+mod help;
+mod sortset;
+mod set;
+mod list;
+mod hash;
+mod stringopt;
+mod keys;
 
-#[macro_use]
-extern crate prettytable;
-use std::{
-    clone,
-    io::{self, stdin, Write},
+use std::io::{self, stdin, Write};
+
+use regex::Regex;
+use util::strparse::StrParse;
+
+use crate::{
+    cmd::string::Cmd,
+    cvt::Cvt,
+    util::strexpres::{Express, StrExpress},
 };
 
-// use prettytable::{row, Cell, Row, Table};
-// use simple_redis::{client, RedisError};
 extern crate simple_redis;
-include!("cvt.rs");
+// include!("cvt.rs");
 
 fn main() -> io::Result<()> {
-    let parmas = RedisParams {
-        host: String::from("127.0.0.1"),
-        port: String::from("6379"),
-        db: 0,
-        auth: String::from(""),
+    //get redis param
+    //host port auth
+    let mut host = String::new();
+    let mut port = String::new();
+    let mut auth = String::new();
+    parse_args(&mut host, &mut port, &mut auth);
+    let mut parmas = &mut RedisParams {
+        host: host,
+        port: port,
+        db: String::from("0"),
+        auth: auth,
     };
 
-    let mut clients = parmas.new();
+    let clients = &mut parmas.new();
+    match clients.echo("Ping") {
+        Ok(_) => {
+            println!(
+                "  
+    .-\"\"\"-.
+    / .===. \\
+    \\/ 6 6 \\/
+    ( \\___/ )
+ _________ooo__\\_____/_____________
+/                                  \\
+|    Connect Redis Success!         |
+\\_______________________ooo________/ 
+     |  |  |
+     |_ | _|
+     |  |  |
+     |__|__|
+     /-'Y'-\\
+    (__/ \\__)"
+            );
+        }
+        Err(_) => {
+            println!("Connect Refused,Please Check the NetWork ");
+            return Ok(());
+        }
+    }
 
     loop {
-        print!("#_>");
+        print!("{}:{}~[db{}]#> ", &parmas.host, &parmas.port, &parmas.db);
 
         //flush std io
         //set params from readline
@@ -38,12 +81,33 @@ fn main() -> io::Result<()> {
                 //match
                 match &cmd as &str {
                     "quit" => {
-                        println!("quit redis tools");
+                        println!("Bye! quit redis tools");
                         break;
                     }
+                    "clear" => {
+                        cmd::string::StringCMD {}.clear();
+                        print!("\x1b[2J");
+                        print!("\x1b[H");
+                        continue;
+                    }
                     _ => {
-                        let mut clients11 = clients;
-                        Cvt { cmd: cmd }.convert(clients11);
+                        let r = Regex::new(r"db([0-9]\b|1[0-5]\b)").unwrap();
+                        if r.is_match(cmd.as_str()) {
+                            //switch redis db
+                            //use db{0-15}
+                            //like [ # > db1 | # > db2 .......# > db15]
+                            parmas.db =
+                                StrExpress {}.replace(&cmd, "db".to_string(), "".to_string());
+                            println!("switch db {} Success!", &parmas.db);
+                            *clients = parmas.new();
+                            continue;
+                        }
+                        // let clients11 = &mut clients;
+                        Cvt {
+                            cmd,
+                            clients: clients,
+                        }
+                        .convert();
                     }
                 }
             }
@@ -60,7 +124,7 @@ fn main() -> io::Result<()> {
 struct RedisParams {
     host: String,
     port: String,
-    db: u16,
+    db: String,
     auth: String,
 }
 
@@ -87,4 +151,11 @@ impl RedisParams {
             Err(error) => panic!("Unable to create Redis client: {}", error),
         }
     }
+}
+
+fn parse_args(host: &mut String, port: &mut String, auth: &mut String) {
+    let sc = StrParse::new();
+    sc.to_string(host, "-h", "127.0.0.1");
+    sc.to_string(port, "-p", "6379");
+    sc.to_string(auth, "-a", "");
 }

@@ -1,0 +1,85 @@
+package opt
+
+var (
+	HostHeader = []interface{}{"#",
+		"hostname",
+		"uptime",
+		"bootTime",
+		"procs",
+		"os",
+		"platform",
+		"platformFamily",
+		"platformVersion",
+		"kernelVersion",
+		"kernelArch",
+		"hostId",
+	}
+
+	MemoryHeader = []interface{}{"#",
+		"total",
+		"used",
+		"free",
+		"shared",
+		"buff",
+		"cache",
+		"available",
+		"used%",
+	}
+
+	CpuHeader = []interface{}{"#",
+		"ModelName",
+		"PhysicalID",
+		"CPU",
+		"VendorID",
+		"Family",
+		"Model",
+		"Stepping",
+		"CoreID",
+		"Cores",
+		"Mhz",
+		"CacheSize",
+		"Microcode",
+	}
+
+	DiskHeader = []interface{}{"#",
+		"MountPoint",
+		"FsType",
+		"Opts",
+		"ReadCount",
+		"WriteCount",
+		"ReadBytes",
+		"WriteBytes",
+		"ReadTime",
+		"WriteTime",
+		"IoTime",
+		"SerialNumber",
+		"Label",
+	}
+
+	ProcessHeader = map[string][]LineDefine{
+		"cpu": []LineDefine{
+			{Name: "pid"},
+			{Name: "user"},
+			{Name: "time", Length: 20},
+			{Name: "us"},
+			{Name: "sy"},
+			{Name: "idle"},
+			{Name: "ni"},
+			{Name: "iowait"},
+			{Name: "hi"},
+			{Name: "si"},
+			{Name: "st"},
+			{Name: "cpu% "},
+			{Name: "command"},
+		},
+		"mem": []LineDefine{
+			{Name: "pid"},
+			{Name: "user"},
+			{Name: "time", Length: 20},
+			{Name: "rss"},
+			{Name: "vms"},
+			{Name: "mem% "},
+			{Name: "command"},
+		},
+	}
+)

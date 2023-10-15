@@ -6,5 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-simple_redis = "0.3.44"
+simple_redis = "0.6.1"
 prettytable-rs = "^0.8"
+itertools = "0.10.1"
+regex ="1.5.4"
+base64 = "0.13.0"
